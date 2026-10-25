@@ -1,3 +1,4 @@
+import { SparkIcon } from './LumitudyIcons'
 import { useState } from "react"
 import { useAuth } from "../context/AuthContext"
 import { Brand, ThemeToggle, StudyIllustration, LabFooter } from "./Brand"
@@ -44,7 +45,7 @@ function Auth() {
           <StudyIllustration />
         </section>
         <section className="auth-card" aria-labelledby="auth-heading">
-          <span className="card-sticker" aria-hidden="true">✦</span>
+          <span className="card-sticker" aria-hidden="true"><SparkIcon /></span>
           <span className="eyebrow">A LITTLE EVERY DAY</span>
           <h2 id="auth-heading">{isLogin ? 'Welcome back, curious mind.' : 'Your next chapter starts here.'}</h2>
           <p className="auth-tagline">{isLogin ? 'Pick up where your curiosity left off.' : 'Make room for a new way to learn.'}</p>

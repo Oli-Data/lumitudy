@@ -1,3 +1,4 @@
+import { StarIcon, SparkIcon } from './components/LumitudyIcons'
 import { useState, useEffect, useRef } from "react"
 import axios from "axios"
 import { useAuth } from "./context/AuthContext"
@@ -155,7 +156,7 @@ export default function App() {
           <div><span className="eyebrow">YOUR PERSONAL STUDY SPACE</span>
           <h1>A little focus.<br /><em>A lot of possibility.</em></h1>
           <p>Bring a chapter. Find your rhythm. Turn your reading into flashcards, quizzes, and a little friendly competition.</p>
-          <div className="feature-pills"><span>✦ Flashcards</span><span>◈ Practice exams</span><span>✳ Play together</span></div></div>
+          <div className="feature-pills"><span><SparkIcon /> Flashcards</span><span>◈ Practice exams</span><span><StarIcon /> Play together</span></div></div>
           <StudyIllustration />
         </section>
         <div className="workspace-heading"><h2>Let’s get into it.</h2><span>One chapter at a time</span></div>
