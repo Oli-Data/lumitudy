@@ -1,3 +1,4 @@
+import ArrowIcon from './ArrowIcon'
 import { useEffect, useState } from 'react'
 
 export function AeroBackdrop() {
@@ -23,10 +24,10 @@ export function StudyIllustration() {
     <span className="floating-spark spark-one">✳</span><span className="floating-spark spark-two">✦</span>
     <div className="illustration-card card-back"><span>01 / A LITTLE CURIOSITY</span><strong>Big ideas.<br />Small steps.</strong><div className="mini-lines"><i /><i /><i /></div></div>
     <div className="illustration-card card-front"><span>02 / A LITTLE PRACTICE</span><strong>Oh, now<br />I get it.</strong><div className="illustration-answer"><span>✦</span> Your next lightbulb moment</div></div>
-    <span className="floating-note">Made for curious minds ↗</span>
+    <span className="floating-note">Made for curious minds <ArrowIcon /></span>
   </div>
 }
 
 export function LabFooter() {
-  return <footer className="lab-footer"><span>A little curiosity goes a long way.</span><span>Made by <a href="https://co3labs.com">CO³ Labs ↗</a></span></footer>
+  return <footer className="lab-footer"><span>A little curiosity goes a long way.</span><span>Made by <a href="https://co3labs.com">CO³ Labs <ArrowIcon /></a></span></footer>
 }

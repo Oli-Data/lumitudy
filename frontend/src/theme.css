@@ -250,3 +250,5 @@ body { position:relative; isolation:isolate; background:var(--bg); }
 :root { --glass:linear-gradient(135deg,rgba(255,255,255,.5),rgba(255,255,255,.06) 40%,rgba(181,231,244,.12)),var(--surface); }
 :root[data-theme='night'] { --glass:linear-gradient(135deg,rgba(176,235,255,.13),transparent 48%),var(--surface); }
 @media(max-width:400px) { .app-container .brand { font-size:18px; } .app-container .brand-mark { display:none; } .app-container .header-actions { gap:6px; } .app-container .header { padding:12px; gap:6px; } }
+
+.arrow-icon { display:inline-block; width:1em; height:1em; flex-shrink:0; vertical-align:-.12em; }
