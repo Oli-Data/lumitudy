@@ -1,0 +1,22 @@
+.flashcard-slide { animation-duration: .35s; animation-timing-function: ease; animation-fill-mode: both; }
+  @keyframes slideOutLeft {
+    from { transform: translateX(0) rotate(0deg); opacity: 1; }
+    to { transform: translateX(-120%) rotate(-8deg); opacity: 0; }
+  }
+  @keyframes slideOutRight {
+    from { transform: translateX(0) rotate(0deg); opacity: 1; }
+    to { transform: translateX(120%) rotate(8deg); opacity: 0; }
+  }
+  @keyframes slideInLeft {
+    from { transform: translateX(120%) rotate(8deg); opacity: 0; }
+    to { transform: translateX(0) rotate(0deg); opacity: 1; }
+  }
+  @keyframes slideInRight {
+    from { transform: translateX(-120%) rotate(-8deg); opacity: 0; }
+    to { transform: translateX(0) rotate(0deg); opacity: 1; }
+  }
+
+  .slide-out-left { animation-name: slideOutLeft; }
+  .slide-out-right { animation-name: slideOutRight; }
+  .slide-in-left { animation-name: slideInLeft; }
+  .slide-in-right { animation-name: slideInRight; }

@@ -216,10 +216,11 @@ function Kahoot({ fileData, onExit }) {
   }
 
   const glassPanel = {
-    background: "rgba(0, 180, 210, 0.06)",
+    background: "var(--glass)",
+    boxShadow: "var(--shadow)",
     backdropFilter: "blur(24px)",
-    border: "1px solid rgba(0, 220, 240, 0.12)",
-    borderRadius: "18px",
+    border: "1px solid var(--line)",
+    borderRadius: "24px",
     padding: "1.5rem",
     marginBottom: "1.25rem",
     position: "relative",
@@ -228,14 +229,14 @@ function Kahoot({ fileData, onExit }) {
 
   const topLine = {
     position: "absolute", top: 0, left: 0, right: 0, height: "1px",
-    background: "linear-gradient(90deg, transparent, rgba(0,220,240,0.3), transparent)"
+    background: "linear-gradient(90deg, transparent, var(--line), transparent)"
   }
 
   const panelTitle = {
     fontFamily: "'Syne', sans-serif",
     fontSize: "0.72rem",
     fontWeight: 700,
-    color: "rgba(0, 220, 240, 0.5)",
+    color: "var(--accent)",
     textTransform: "uppercase",
     letterSpacing: "0.1em",
     marginBottom: "1rem"
@@ -244,9 +245,9 @@ function Kahoot({ fileData, onExit }) {
   const btnPrimary = {
     width: "100%",
     padding: "0.8rem",
-    background: "linear-gradient(135deg, rgba(0,150,200,0.7), rgba(100,80,220,0.7))",
-    color: "#e0f4ff",
-    border: "1px solid rgba(0,200,240,0.2)",
+    background: "linear-gradient(135deg, var(--primary-start), var(--primary-end))",
+    color: "var(--on-primary)",
+    border: "1px solid var(--line)",
     borderRadius: "10px",
     cursor: "pointer",
     fontSize: "0.95rem",
@@ -265,9 +266,9 @@ function Kahoot({ fileData, onExit }) {
           <p style={{ ...panelTitle, marginBottom: 0 }}>Kahoot Mode</p>
           <button onClick={onExit} style={{
             padding: "0.4rem 1rem",
-            background: "rgba(255,255,255,0.05)",
-            color: "rgba(200,240,255,0.65)",
-            border: "1px solid rgba(255,255,255,0.08)",
+            background: "var(--surface)",
+            color: "var(--muted)",
+            border: "1px solid var(--line)",
             borderRadius: "8px", cursor: "pointer",
             fontFamily: "'DM Sans', sans-serif", fontSize: "0.85rem"
           }}>Back</button>
@@ -276,16 +277,16 @@ function Kahoot({ fileData, onExit }) {
         {fileData && (
           <div style={{ marginBottom: "1.5rem" }}>
             <p style={panelTitle}>Host a Game</p>
-            <label style={{ color: "rgba(200,235,245,0.55)", fontSize: "0.88rem", display: "block", marginBottom: "0.4rem" }}>Chapter:</label>
+            <label style={{ color: "var(--muted)", fontSize: "0.88rem", display: "block", marginBottom: "0.4rem" }}>Chapter:</label>
             <select value={selectedChapter} onChange={(e) => setSelectedChapter(e.target.value)} style={{ marginBottom: "0.75rem" }}>
               {fileData.chapters.map(c => <option key={c} value={c}>{c}</option>)}
             </select>
-            <label style={{ color: "rgba(200,235,245,0.55)", fontSize: "0.88rem", display: "block", marginBottom: "0.4rem" }}>
+            <label style={{ color: "var(--muted)", fontSize: "0.88rem", display: "block", marginBottom: "0.4rem" }}>
               Questions: {numQuestions}
             </label>
             <input type="range" min="5" max="20" value={numQuestions}
               onChange={(e) => setNumQuestions(parseInt(e.target.value))}
-              style={{ width: "100%", marginBottom: "0.75rem", accentColor: "#00e5ff" }}
+              style={{ width: "100%", marginBottom: "0.75rem", accentColor: "var(--accent)" }}
             />
             <button onClick={createGame} disabled={loading} style={btnPrimary}>
               {loading ? "Creating game..." : "🎮 Create Game"}
@@ -306,9 +307,9 @@ function Kahoot({ fileData, onExit }) {
             />
             <button onClick={joinGame} style={{
               padding: "0.65rem 1.1rem",
-              background: "rgba(0,180,220,0.2)",
-              color: "#00e5ff",
-              border: "1px solid rgba(0,220,240,0.3)",
+              background: "var(--mint-soft)",
+              color: "var(--accent)",
+              border: "1px solid var(--line)",
               borderRadius: "9px", cursor: "pointer",
               fontFamily: "'DM Sans', sans-serif", fontSize: "0.88rem",
               whiteSpace: "nowrap"
@@ -316,7 +317,7 @@ function Kahoot({ fileData, onExit }) {
           </div>
         </div>
 
-        {error && <p style={{ color: "#f87171", marginTop: "0.75rem", fontSize: "0.88rem" }}>{error}</p>}
+        {error && <p style={{ color: "var(--danger)", marginTop: "0.75rem", fontSize: "0.88rem" }}>{error}</p>}
       </div>
     )
   }
@@ -331,14 +332,14 @@ function Kahoot({ fileData, onExit }) {
         <div style={{
           textAlign: "center",
           padding: "1rem",
-          background: "rgba(0,0,0,0.2)",
+          background: "var(--inset)",
           borderRadius: "12px",
           marginBottom: "1.25rem",
-          border: "1px solid rgba(0,220,240,0.1)"
+          border: "1px solid var(--line)"
         }}>
-          <p style={{ color: "rgba(200,235,245,0.4)", fontSize: "0.75rem", textTransform: "uppercase", letterSpacing: "0.1em", marginBottom: "0.4rem" }}>Game Code</p>
-          <p style={{ fontFamily: "'Syne', sans-serif", fontSize: "2rem", fontWeight: 800, color: "#00e5ff", letterSpacing: "0.15em" }}>{gameCode}</p>
-          <p style={{ color: "rgba(200,235,245,0.3)", fontSize: "0.8rem", marginTop: "0.25rem" }}>Share this code with your friends</p>
+          <p style={{ color: "var(--muted)", fontSize: "0.75rem", textTransform: "uppercase", letterSpacing: "0.1em", marginBottom: "0.4rem" }}>Game Code</p>
+          <p style={{ fontFamily: "'Syne', sans-serif", fontSize: "2rem", fontWeight: 800, color: "var(--accent)", letterSpacing: "0.15em" }}>{gameCode}</p>
+          <p style={{ color: "var(--muted)", fontSize: "0.8rem", marginTop: "0.25rem" }}>Share this code with your friends</p>
         </div>
 
         <div style={{ display: "flex", gap: "1rem", flexWrap: "wrap" }}>
@@ -348,20 +349,20 @@ function Kahoot({ fileData, onExit }) {
               <div key={i} style={{
                 display: "flex", alignItems: "center", gap: "0.75rem",
                 padding: "0.6rem 0",
-                borderBottom: "1px solid rgba(0,200,220,0.07)"
+                borderBottom: "1px solid var(--line)"
               }}>
                 <div style={{
                   width: "28px", height: "28px",
-                  background: "linear-gradient(135deg, #00e5ff, #a78bfa)",
+                  background: "linear-gradient(135deg, var(--accent), var(--aqua))",
                   borderRadius: "50%",
                   display: "flex", alignItems: "center", justifyContent: "center",
-                  fontSize: "0.75rem", fontWeight: 700, color: "#0a1628", flexShrink: 0
+                  fontSize: "0.75rem", fontWeight: 700, color: "var(--ink)", flexShrink: 0
                 }}>
                   {p[0].toUpperCase()}
                 </div>
-                <span style={{ color: "#e0f0f8", fontSize: "0.9rem" }}>
+                <span style={{ color: "var(--ink)", fontSize: "0.9rem" }}>
                   {p}
-                  {i === 0 && <span style={{ color: "rgba(0,220,240,0.5)", fontSize: "0.75rem", marginLeft: "0.4rem" }}>HOST</span>}
+                  {i === 0 && <span style={{ color: "var(--accent)", fontSize: "0.75rem", marginLeft: "0.4rem" }}>HOST</span>}
                 </span>
               </div>
             ))}
@@ -371,14 +372,14 @@ function Kahoot({ fileData, onExit }) {
             <div style={{ flex: 1, minWidth: "200px" }}>
               <p style={panelTitle}>Select Questions</p>
 
-              <div style={{ display: "flex", marginBottom: "0.75rem", background: "rgba(0,0,0,0.2)", borderRadius: "8px", padding: "0.2rem", border: "1px solid rgba(0,220,240,0.08)" }}>
+              <div style={{ display: "flex", marginBottom: "0.75rem", background: "var(--inset)", borderRadius: "8px", padding: "0.2rem", border: "1px solid var(--line)" }}>
                 <button
                   onClick={() => setLobbyTab("generate")}
                   style={{
                     flex: 1, padding: "0.4rem", border: "none", borderRadius: "6px", cursor: "pointer",
                     fontFamily: "'DM Sans', sans-serif", fontSize: "0.8rem", transition: "all 0.2s",
-                    background: lobbyTab === "generate" ? "rgba(0,180,220,0.2)" : "transparent",
-                    color: lobbyTab === "generate" ? "#00e5ff" : "rgba(200,240,255,0.35)"
+                    background: lobbyTab === "generate" ? "var(--mint-soft)" : "transparent",
+                    color: lobbyTab === "generate" ? "var(--accent)" : "var(--muted)"
                   }}
                 >Generate</button>
                 <button
@@ -386,8 +387,8 @@ function Kahoot({ fileData, onExit }) {
                   style={{
                     flex: 1, padding: "0.4rem", border: "none", borderRadius: "6px", cursor: "pointer",
                     fontFamily: "'DM Sans', sans-serif", fontSize: "0.8rem", transition: "all 0.2s",
-                    background: lobbyTab === "saved" ? "rgba(0,180,220,0.2)" : "transparent",
-                    color: lobbyTab === "saved" ? "#00e5ff" : "rgba(200,240,255,0.35)"
+                    background: lobbyTab === "saved" ? "var(--mint-soft)" : "transparent",
+                    color: lobbyTab === "saved" ? "var(--accent)" : "var(--muted)"
                   }}
                 >Saved Sets</button>
               </div>
@@ -401,20 +402,20 @@ function Kahoot({ fileData, onExit }) {
                   >
                     {fileData.chapters.map(c => <option key={c} value={c}>{c}</option>)}
                   </select>
-                  <label style={{ color: "rgba(200,235,245,0.55)", fontSize: "0.82rem", display: "block", marginBottom: "0.25rem" }}>
+                  <label style={{ color: "var(--muted)", fontSize: "0.82rem", display: "block", marginBottom: "0.25rem" }}>
                     Questions: {numQuestions}
                   </label>
                   <input type="range" min="5" max="20" value={numQuestions}
                     onChange={(e) => setNumQuestions(parseInt(e.target.value))}
-                    style={{ width: "100%", marginBottom: "0.5rem", accentColor: "#00e5ff" }}
+                    style={{ width: "100%", marginBottom: "0.5rem", accentColor: "var(--accent)" }}
                   />
                   <button
                     onClick={updateQuestions}
                     disabled={updatingQuestions}
                     style={{
                       width: "100%", padding: "0.6rem",
-                      background: "linear-gradient(135deg, rgba(0,150,200,0.7), rgba(100,80,220,0.7))",
-                      color: "#e0f4ff", border: "1px solid rgba(0,200,240,0.2)",
+                      background: "linear-gradient(135deg, var(--primary-start), var(--primary-end))",
+                      color: "var(--on-primary)", border: "1px solid var(--line)",
                       borderRadius: "8px", cursor: "pointer",
                       fontFamily: "'DM Sans', sans-serif", fontSize: "0.82rem", fontWeight: 500
                     }}
@@ -427,23 +428,23 @@ function Kahoot({ fileData, onExit }) {
               {lobbyTab === "saved" && (
                 <div>
                   {savedSets.length === 0 ? (
-                    <p style={{ color: "rgba(200,235,245,0.25)", fontSize: "0.82rem" }}>No saved sets.</p>
+                    <p style={{ color: "var(--muted)", fontSize: "0.82rem" }}>No saved sets.</p>
                   ) : (
                     savedSets.map((set) => (
                       <div key={set.id} style={{
                         display: "flex", justifyContent: "space-between", alignItems: "center",
-                        padding: "0.5rem 0", borderBottom: "1px solid rgba(0,200,220,0.07)"
+                        padding: "0.5rem 0", borderBottom: "1px solid var(--line)"
                       }}>
                         <div>
-                          <span style={{ color: "#e0f0f8", fontSize: "0.82rem" }}>{set.title}</span>
-                          <span style={{ color: "rgba(200,235,245,0.3)", fontSize: "0.75rem", marginLeft: "0.4rem" }}>{set.cards.length} cards</span>
+                          <span style={{ color: "var(--ink)", fontSize: "0.82rem" }}>{set.title}</span>
+                          <span style={{ color: "var(--muted)", fontSize: "0.75rem", marginLeft: "0.4rem" }}>{set.cards.length} cards</span>
                         </div>
                         <button
                           onClick={() => updateQuestionsFromSet(set)}
                           style={{
                             padding: "0.25rem 0.6rem",
-                            background: "rgba(0,180,220,0.2)", color: "#00e5ff",
-                            border: "1px solid rgba(0,220,240,0.3)",
+                            background: "var(--mint-soft)", color: "var(--accent)",
+                            border: "1px solid var(--line)",
                             borderRadius: "6px", cursor: "pointer",
                             fontFamily: "'DM Sans', sans-serif", fontSize: "0.75rem"
                           }}
@@ -455,7 +456,7 @@ function Kahoot({ fileData, onExit }) {
               )}
 
               {questionsReady && (
-                <p style={{ color: "#aff5d0", fontSize: "0.8rem", marginTop: "0.5rem", textAlign: "center" }}>
+                <p style={{ color: "var(--success)", fontSize: "0.8rem", marginTop: "0.5rem", textAlign: "center" }}>
                   ✓ {questionsCount} questions ready
                 </p>
               )}
@@ -470,14 +471,15 @@ function Kahoot({ fileData, onExit }) {
               disabled={players.length < 1}
               style={{
                 ...btnPrimary,
-                background: "linear-gradient(135deg, rgba(249,115,22,0.8), rgba(239,68,68,0.8))",
-                border: "1px solid rgba(255,150,100,0.3)"
+                background: "linear-gradient(135deg, var(--peach), var(--peach))",
+                color: "var(--on-pastel)",
+                border: "1px solid var(--gold-line)"
               }}
             >
               🚀 Start Game
             </button>
           ) : (
-            <p style={{ textAlign: "center", color: "rgba(200,235,245,0.4)", fontSize: "0.88rem" }}>
+            <p style={{ textAlign: "center", color: "var(--muted)", fontSize: "0.88rem" }}>
               Waiting for host to start...
             </p>
           )}
@@ -489,10 +491,10 @@ function Kahoot({ fileData, onExit }) {
   // Game screen
   if (mode === "game") {
     const colors = [
-      { bg: "rgba(239,68,68,0.15)", border: "rgba(239,68,68,0.4)", color: "#f87171" },
-      { bg: "rgba(59,130,246,0.15)", border: "rgba(59,130,246,0.4)", color: "#60a5fa" },
-      { bg: "rgba(234,179,8,0.15)", border: "rgba(234,179,8,0.4)", color: "#fbbf24" },
-      { bg: "rgba(34,197,94,0.15)", border: "rgba(34,197,94,0.4)", color: "#4ade80" },
+      { bg: "var(--danger-soft)", border: "var(--danger-line)", color: "var(--danger)" },
+      { bg: "var(--blue-soft)", border: "var(--blue-line)", color: "var(--blue)" },
+      { bg: "var(--gold-soft)", border: "var(--gold-line)", color: "var(--gold)" },
+      { bg: "var(--success-soft)", border: "var(--success-line)", color: "var(--success)" },
     ]
 
     const shapes = ["▲", "◆", "●", "■"]
@@ -506,22 +508,22 @@ function Kahoot({ fileData, onExit }) {
             <div key={i} style={{
               display: "flex", justifyContent: "space-between", alignItems: "center",
               padding: "0.75rem 1rem", marginBottom: "0.5rem", borderRadius: "10px",
-              background: i === 0 ? "rgba(255,200,0,0.08)" : "rgba(0,180,210,0.04)",
-              border: `1px solid ${i === 0 ? "rgba(255,200,0,0.2)" : "rgba(0,220,240,0.08)"}`
+              background: i === 0 ? "var(--gold-soft)" : "var(--surface)",
+              border: `1px solid ${i === 0 ? "var(--gold-line)" : "var(--line)"}`
             }}>
               <div style={{ display: "flex", alignItems: "center", gap: "0.75rem" }}>
                 <span style={{
                   fontFamily: "'Syne', sans-serif", fontWeight: 700,
-                  color: i === 0 ? "#ffd700" : i === 1 ? "#c0c0c0" : i === 2 ? "#cd7f32" : "rgba(200,235,245,0.4)"
+                  color: i === 0 ? "var(--gold)" : i === 1 ? "var(--muted)" : i === 2 ? "var(--peach-ink)" : "var(--muted)"
                 }}>#{i + 1}</span>
-                <span style={{ color: "#e8f4f8", fontSize: "0.9rem" }}>{entry.username}</span>
+                <span style={{ color: "var(--ink)", fontSize: "0.9rem" }}>{entry.username}</span>
               </div>
-              <span style={{ fontFamily: "'Syne', sans-serif", fontWeight: 700, color: "#00e5ff" }}>
+              <span style={{ fontFamily: "'Syne', sans-serif", fontWeight: 700, color: "var(--accent)" }}>
                 {entry.score}
               </span>
             </div>
           ))}
-          <p style={{ textAlign: "center", color: "rgba(200,235,245,0.3)", fontSize: "0.82rem", marginTop: "0.75rem" }}>
+          <p style={{ textAlign: "center", color: "var(--muted)", fontSize: "0.82rem", marginTop: "0.75rem" }}>
             {isLastQuestion ? "Game ending..." : "Next question coming up..."}
           </p>
         </div>
@@ -533,36 +535,36 @@ function Kahoot({ fileData, onExit }) {
         <div style={topLine} />
 
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "1rem" }}>
-          <span style={{ color: "rgba(200,235,245,0.4)", fontSize: "0.82rem", fontFamily: "'Syne', sans-serif" }}>
+          <span style={{ color: "var(--muted)", fontSize: "0.82rem", fontFamily: "'Syne', sans-serif" }}>
             {questionIndex + 1} / {totalQuestions}
           </span>
           <div style={{
             width: "44px", height: "44px",
             borderRadius: "50%",
-            background: timeLeft <= 5 ? "rgba(239,68,68,0.2)" : "rgba(0,180,210,0.1)",
-            border: `2px solid ${timeLeft <= 5 ? "rgba(239,68,68,0.5)" : "rgba(0,220,240,0.3)"}`,
+            background: timeLeft <= 5 ? "var(--danger-line)" : "var(--mint-soft)",
+            border: `2px solid ${timeLeft <= 5 ? "var(--danger-line)" : "var(--line)"}`,
             display: "flex", alignItems: "center", justifyContent: "center",
             fontFamily: "'Syne', sans-serif", fontWeight: 700,
-            color: timeLeft <= 5 ? "#f87171" : "#00e5ff",
+            color: timeLeft <= 5 ? "var(--danger)" : "var(--accent)",
             fontSize: "1.1rem",
             transition: "all 0.3s"
           }}>
             {timeLeft}
           </div>
-          <span style={{ fontFamily: "'Syne', sans-serif", color: "#00e5ff", fontSize: "0.85rem" }}>
+          <span style={{ fontFamily: "'Syne', sans-serif", color: "var(--accent)", fontSize: "0.85rem" }}>
             {totalScore} pts
           </span>
         </div>
 
         <div style={{
-          background: "rgba(0,0,0,0.2)",
+          background: "var(--inset)",
           borderRadius: "12px",
           padding: "1.25rem",
           marginBottom: "1rem",
-          border: "1px solid rgba(0,220,240,0.08)",
+          border: "1px solid var(--line)",
           textAlign: "center"
         }}>
-          <p style={{ color: "#e8f4f8", fontSize: "1.05rem", fontWeight: 500, lineHeight: 1.5, fontFamily: "'DM Sans', sans-serif" }}>
+          <p style={{ color: "var(--ink)", fontSize: "1.05rem", fontWeight: 500, lineHeight: 1.5, fontFamily: "'DM Sans', sans-serif" }}>
             {question?.question}
           </p>
         </div>
@@ -573,10 +575,10 @@ function Kahoot({ fileData, onExit }) {
             padding: "0.75rem",
             marginBottom: "0.75rem",
             borderRadius: "10px",
-            background: answerResult.correct ? "rgba(0,180,100,0.1)" : "rgba(239,68,68,0.1)",
-            border: `1px solid ${answerResult.correct ? "rgba(0,220,120,0.3)" : "rgba(239,68,68,0.3)"}`
+            background: answerResult.correct ? "var(--success-soft)" : "var(--danger-soft)",
+            border: `1px solid ${answerResult.correct ? "var(--success-line)" : "var(--danger-line)"}`
           }}>
-            <p style={{ color: answerResult.correct ? "#aff5d0" : "#f87171", fontWeight: 600, fontSize: "0.95rem" }}>
+            <p style={{ color: answerResult.correct ? "var(--success)" : "var(--danger)", fontWeight: 600, fontSize: "0.95rem" }}>
               {answerResult.correct ? `+${answerResult.points_earned} points!` : "Wrong!"}
             </p>
           </div>
@@ -593,11 +595,11 @@ function Kahoot({ fileData, onExit }) {
                 disabled={answered}
                 style={{
                   padding: "1rem 0.75rem",
-                  background: isSelected ? c.bg : "rgba(0,0,0,0.15)",
-                  border: `2px solid ${isSelected ? c.border : "rgba(255,255,255,0.06)"}`,
+                  background: isSelected ? c.bg : "var(--inset)",
+                  border: `2px solid ${isSelected ? c.border : "var(--line)"}`,
                   borderRadius: "12px",
                   cursor: answered ? "default" : "pointer",
-                  color: isSelected ? c.color : "rgba(200,235,245,0.6)",
+                  color: isSelected ? c.color : "var(--muted)",
                   fontFamily: "'DM Sans', sans-serif",
                   fontSize: "0.88rem",
                   transition: "all 0.2s",
@@ -615,7 +617,7 @@ function Kahoot({ fileData, onExit }) {
         </div>
 
         {answered && !answerResult && (
-          <p style={{ textAlign: "center", color: "rgba(200,235,245,0.3)", fontSize: "0.82rem", marginTop: "0.75rem" }}>
+          <p style={{ textAlign: "center", color: "var(--muted)", fontSize: "0.82rem", marginTop: "0.75rem" }}>
             Waiting for other players...
           </p>
         )}
@@ -628,11 +630,11 @@ function Kahoot({ fileData, onExit }) {
     return (
       <div style={glassPanel}>
         <div style={topLine} />
-        <h2 style={{ textAlign: "center", fontFamily: "'Syne', sans-serif", color: "#e8f4f8", marginBottom: "0.5rem" }}>
+        <h2 style={{ textAlign: "center", fontFamily: "'Syne', sans-serif", color: "var(--ink)", marginBottom: "0.5rem" }}>
           Game Over!
         </h2>
         {finalLeaderboard[0] && (
-          <p style={{ textAlign: "center", color: "#ffd700", fontFamily: "'Syne', sans-serif", fontSize: "1.2rem", fontWeight: 700, marginBottom: "1.5rem" }}>
+          <p style={{ textAlign: "center", color: "var(--gold)", fontFamily: "'Syne', sans-serif", fontSize: "1.2rem", fontWeight: 700, marginBottom: "1.5rem" }}>
             🏆 {finalLeaderboard[0].username} wins!
           </p>
         )}
@@ -642,19 +644,19 @@ function Kahoot({ fileData, onExit }) {
           <div key={i} style={{
             display: "flex", justifyContent: "space-between", alignItems: "center",
             padding: "0.75rem 1rem", marginBottom: "0.5rem", borderRadius: "10px",
-            background: i === 0 ? "rgba(255,200,0,0.08)" : "rgba(0,180,210,0.04)",
-            border: `1px solid ${i === 0 ? "rgba(255,200,0,0.2)" : "rgba(0,220,240,0.08)"}`
+            background: i === 0 ? "var(--gold-soft)" : "var(--surface)",
+            border: `1px solid ${i === 0 ? "var(--gold-line)" : "var(--line)"}`
           }}>
             <div style={{ display: "flex", alignItems: "center", gap: "0.75rem" }}>
               <span style={{
                 fontFamily: "'Syne', sans-serif", fontWeight: 700, fontSize: "1.1rem",
-                color: i === 0 ? "#ffd700" : i === 1 ? "#c0c0c0" : i === 2 ? "#cd7f32" : "rgba(200,235,245,0.4)"
+                color: i === 0 ? "var(--gold)" : i === 1 ? "var(--muted)" : i === 2 ? "var(--peach-ink)" : "var(--muted)"
               }}>
                 {i === 0 ? "🥇" : i === 1 ? "🥈" : i === 2 ? "🥉" : `#${i + 1}`}
               </span>
-              <span style={{ color: "#e8f4f8", fontSize: "0.95rem" }}>{entry.username}</span>
+              <span style={{ color: "var(--ink)", fontSize: "0.95rem" }}>{entry.username}</span>
             </div>
-            <span style={{ fontFamily: "'Syne', sans-serif", fontWeight: 700, color: "#00e5ff", fontSize: "1rem" }}>
+            <span style={{ fontFamily: "'Syne', sans-serif", fontWeight: 700, color: "var(--accent)", fontSize: "1rem" }}>
               {entry.score}
             </span>
           </div>
@@ -677,7 +679,7 @@ function Kahoot({ fileData, onExit }) {
               ...btnPrimary,
               marginBottom: 0,
               flex: 1,
-              background: "linear-gradient(135deg, rgba(0,150,200,0.7), rgba(100,80,220,0.7))"
+              background: "linear-gradient(135deg, var(--primary-start), var(--primary-end))"
             }}
           >
             🔄 Back to Lobby
@@ -687,9 +689,9 @@ function Kahoot({ fileData, onExit }) {
             style={{
               flex: 1,
               padding: "0.8rem",
-              background: "rgba(255,255,255,0.05)",
-              color: "rgba(200,240,255,0.65)",
-              border: "1px solid rgba(255,255,255,0.08)",
+              background: "var(--surface)",
+              color: "var(--muted)",
+              border: "1px solid var(--line)",
               borderRadius: "10px",
               cursor: "pointer",
               fontFamily: "'DM Sans', sans-serif",

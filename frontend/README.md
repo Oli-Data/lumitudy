@@ -1,16 +1,21 @@
-# React + Vite
+# Lumitudy frontend
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+React and Vite study interface for Lumitudy, a CO³ Labs project.
 
-Currently, two official plugins are available:
+## Local development
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+Run `npm run dev` from this folder. Set `VITE_API_URL` to your intended backend. The sign-in screen can be previewed without a backend; accounts, documents, generation, saved sets, and multiplayer require the API.
 
-## React Compiler
+- `npm run build`: production frontend build
+- `npm run preview`: serve the latest build locally
+- `npm test`: existing server-graded exam regression checks
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+## Visual system
 
-## Expanding the ESLint configuration
+`src/theme.css` owns the shared day/night palette, glass surfaces, responsive layouts, and Frutiger Aero finish. The visual connection to CO³ Labs uses Syne headings, DM Sans body text, translucent panels, and aquatic colors. Lumitudy adds fresh green, sky blue, warm yellow, and peach accents, with glossy study cards, and decorative bubbles. All illustration elements are local CSS or SVG; fonts use the existing Google Fonts source.
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+`src/components/Brand.jsx` contains the shared wordmark, backdrop, study illustration, footer, and appearance switch. The preference is saved under `lumitudy-theme`; day is the default. `src/study.css` contains flashcard transition animations, with reduced-motion support in the shared theme.
+
+Existing study components use semantic color variables so questions, results, friends, and multiplayer stay readable in both appearances. The visual refresh does not change API paths or backend authentication. Source passages are described as review aids, not automatic proof of correctness.
+
+Domain, hosting, and deployment configuration are managed separately from this frontend design.

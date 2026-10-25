@@ -33,10 +33,11 @@ function FileLibrary({ onFileSelect }) {
 
   return (
     <div style={{
-      background: "rgba(0, 180, 210, 0.06)",
+      background: "var(--glass)",
+      boxShadow: "var(--shadow)",
       backdropFilter: "blur(24px)",
-      border: "1px solid rgba(0, 220, 240, 0.12)",
-      borderRadius: "18px",
+      border: "1px solid var(--line)",
+      borderRadius: "24px",
       padding: "1.5rem",
       marginBottom: "1.25rem",
       position: "relative",
@@ -44,30 +45,30 @@ function FileLibrary({ onFileSelect }) {
     }}>
       <div style={{
         position: "absolute", top: 0, left: 0, right: 0, height: "1px",
-        background: "linear-gradient(90deg, transparent, rgba(0,220,240,0.3), transparent)"
+        background: "linear-gradient(90deg, transparent, var(--line), transparent)"
       }} />
 
       <p style={{
         fontFamily: "'Syne', sans-serif",
         fontSize: "0.72rem",
         fontWeight: 700,
-        color: "rgba(0, 220, 240, 0.5)",
+        color: "var(--accent)",
         textTransform: "uppercase",
         letterSpacing: "0.1em",
         marginBottom: "1rem"
       }}>My Textbooks</p>
 
       {files.map((file) => (
-        <div key={file.id} style={{
+        <div key={file.id} className="library-row" style={{
           display: "flex",
           justifyContent: "space-between",
           alignItems: "center",
           padding: "0.75rem 0",
-          borderBottom: "1px solid rgba(0,200,220,0.07)"
+          borderBottom: "1px solid var(--line)"
         }}>
           <div>
-            <span style={{ fontWeight: 500, color: "#e0f0f8" }}>{file.filename}</span>
-            <span style={{ fontSize: "0.78rem", color: "rgba(200,235,245,0.3)", marginLeft: "0.5rem" }}>
+            <span style={{ fontWeight: 500, color: "var(--ink)" }}>{file.filename}</span>
+            <span style={{ fontSize: "0.78rem", color: "var(--muted)", marginLeft: "0.5rem" }}>
               {file.chapters.length} chapters
             </span>
           </div>
@@ -81,9 +82,9 @@ function FileLibrary({ onFileSelect }) {
               })}
               style={{
                 padding: "0.3rem 0.75rem",
-                background: "rgba(0, 180, 220, 0.2)",
-                color: "#00e5ff",
-                border: "1px solid rgba(0, 220, 240, 0.3)",
+                background: "var(--mint-soft)",
+                color: "var(--accent)",
+                border: "1px solid var(--line)",
                 borderRadius: "7px",
                 cursor: "pointer",
                 fontSize: "0.82rem",
@@ -96,9 +97,9 @@ function FileLibrary({ onFileSelect }) {
               onClick={() => handleDelete(file.id)}
               style={{
                 padding: "0.3rem 0.75rem",
-                background: "rgba(239,68,68,0.1)",
-                color: "#f87171",
-                border: "1px solid rgba(239,68,68,0.2)",
+                background: "var(--danger-soft)",
+                color: "var(--danger)",
+                border: "1px solid var(--danger-line)",
                 borderRadius: "7px",
                 cursor: "pointer",
                 fontSize: "0.82rem",

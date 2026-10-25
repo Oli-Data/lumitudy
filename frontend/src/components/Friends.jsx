@@ -79,10 +79,11 @@ function Friends({ onClose }) {
   }
 
   const glassPanel = {
-    background: "rgba(0, 180, 210, 0.06)",
+    background: "var(--glass)",
+    boxShadow: "var(--shadow)",
     backdropFilter: "blur(24px)",
-    border: "1px solid rgba(0, 220, 240, 0.12)",
-    borderRadius: "18px",
+    border: "1px solid var(--line)",
+    borderRadius: "24px",
     padding: "1.5rem",
     marginBottom: "1.25rem",
     position: "relative",
@@ -93,7 +94,7 @@ function Friends({ onClose }) {
     fontFamily: "'Syne', sans-serif",
     fontSize: "0.72rem",
     fontWeight: 700,
-    color: "rgba(0, 220, 240, 0.5)",
+    color: "var(--accent)",
     textTransform: "uppercase",
     letterSpacing: "0.1em",
     marginBottom: "1rem"
@@ -104,23 +105,23 @@ function Friends({ onClose }) {
     justifyContent: "space-between",
     alignItems: "center",
     padding: "0.75rem 0",
-    borderBottom: "1px solid rgba(0,200,220,0.07)"
+    borderBottom: "1px solid var(--line)"
   }
 
   return (
     <div style={glassPanel}>
       <div style={{
         position: "absolute", top: 0, left: 0, right: 0, height: "1px",
-        background: "linear-gradient(90deg, transparent, rgba(0,220,240,0.3), transparent)"
+        background: "linear-gradient(90deg, transparent, var(--line), transparent)"
       }} />
 
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "1.25rem" }}>
         <p style={{ ...panelTitle, marginBottom: 0 }}>Friends</p>
         <button onClick={onClose} style={{
           padding: "0.4rem 1rem",
-          background: "rgba(255,255,255,0.05)",
-          color: "rgba(200,240,255,0.65)",
-          border: "1px solid rgba(255,255,255,0.08)",
+          background: "var(--surface)",
+          color: "var(--muted)",
+          border: "1px solid var(--line)",
           borderRadius: "8px", cursor: "pointer",
           fontFamily: "'DM Sans', sans-serif", fontSize: "0.85rem"
         }}>Close</button>
@@ -128,8 +129,8 @@ function Friends({ onClose }) {
 
       {/* Your friend code */}
       <div style={{
-        background: "rgba(0,0,0,0.2)",
-        border: "1px solid rgba(0,220,240,0.1)",
+        background: "var(--inset)",
+        border: "1px solid var(--line)",
         borderRadius: "10px",
         padding: "0.85rem 1rem",
         marginBottom: "1.25rem",
@@ -143,7 +144,7 @@ function Friends({ onClose }) {
             fontFamily: "'Syne', sans-serif",
             fontSize: "1.3rem",
             fontWeight: 700,
-            color: "#00e5ff",
+            color: "var(--accent)",
             letterSpacing: "0.1em"
           }}>{friendCode}</p>
         </div>
@@ -151,9 +152,9 @@ function Friends({ onClose }) {
           onClick={() => navigator.clipboard.writeText(friendCode)}
           style={{
             padding: "0.4rem 0.85rem",
-            background: "rgba(0,180,220,0.1)",
-            color: "rgba(0,220,240,0.7)",
-            border: "1px solid rgba(0,220,240,0.2)",
+            background: "var(--mint-soft)",
+            color: "var(--accent)",
+            border: "1px solid var(--line)",
             borderRadius: "7px", cursor: "pointer",
             fontFamily: "'DM Sans', sans-serif", fontSize: "0.8rem"
           }}
@@ -179,9 +180,9 @@ function Friends({ onClose }) {
             disabled={loading}
             style={{
               padding: "0.65rem 1.1rem",
-              background: "rgba(0, 180, 220, 0.2)",
-              color: "#00e5ff",
-              border: "1px solid rgba(0, 220, 240, 0.3)",
+              background: "var(--mint-soft)",
+              color: "var(--accent)",
+              border: "1px solid var(--line)",
               borderRadius: "9px", cursor: "pointer",
               fontFamily: "'DM Sans', sans-serif", fontSize: "0.88rem",
               whiteSpace: "nowrap"
@@ -190,8 +191,8 @@ function Friends({ onClose }) {
             {loading ? "..." : "Send"}
           </button>
         </div>
-        {message && <p style={{ color: "#aff5d0", fontSize: "0.85rem", marginTop: "0.5rem" }}>{message}</p>}
-        {error && <p style={{ color: "#f87171", fontSize: "0.85rem", marginTop: "0.5rem" }}>{error}</p>}
+        {message && <p style={{ color: "var(--success)", fontSize: "0.85rem", marginTop: "0.5rem" }}>{message}</p>}
+        {error && <p style={{ color: "var(--danger)", fontSize: "0.85rem", marginTop: "0.5rem" }}>{error}</p>}
       </div>
 
       {/* Pending requests */}
@@ -200,19 +201,19 @@ function Friends({ onClose }) {
           <p style={panelTitle}>Pending Requests</p>
           {requests.map((r) => (
             <div key={r.id} style={rowStyle}>
-              <span style={{ color: "#e0f0f8", fontSize: "0.88rem" }}>{r.from_username}</span>
+              <span style={{ color: "var(--ink)", fontSize: "0.88rem" }}>{r.from_username}</span>
               <div style={{ display: "flex", gap: "0.5rem" }}>
                 <button onClick={() => acceptRequest(r.id)} style={{
                   padding: "0.3rem 0.75rem",
-                  background: "rgba(0,180,100,0.15)", color: "#aff5d0",
-                  border: "1px solid rgba(0,220,120,0.3)",
+                  background: "var(--success-soft)", color: "var(--success)",
+                  border: "1px solid var(--success-line)",
                   borderRadius: "7px", cursor: "pointer",
                   fontFamily: "'DM Sans', sans-serif", fontSize: "0.82rem"
                 }}>Accept</button>
                 <button onClick={() => declineRequest(r.id)} style={{
                   padding: "0.3rem 0.75rem",
-                  background: "rgba(239,68,68,0.1)", color: "#f87171",
-                  border: "1px solid rgba(239,68,68,0.2)",
+                  background: "var(--danger-soft)", color: "var(--danger)",
+                  border: "1px solid var(--danger-line)",
                   borderRadius: "7px", cursor: "pointer",
                   fontFamily: "'DM Sans', sans-serif", fontSize: "0.82rem"
                 }}>Decline</button>
@@ -226,15 +227,15 @@ function Friends({ onClose }) {
       <div>
         <p style={panelTitle}>My Friends</p>
         {friends.length === 0 ? (
-          <p style={{ color: "rgba(200,235,245,0.25)", fontSize: "0.88rem" }}>No friends yet. Share your code above.</p>
+          <p style={{ color: "var(--muted)", fontSize: "0.88rem" }}>No friends yet. Share your code above.</p>
         ) : (
           friends.map((f) => (
             <div key={f.id} style={{ ...rowStyle, borderBottom: "none" }}>
-              <span style={{ color: "#e0f0f8", fontSize: "0.88rem" }}>{f.username}</span>
+              <span style={{ color: "var(--ink)", fontSize: "0.88rem" }}>{f.username}</span>
               <button onClick={() => removeFriend(f.id)} style={{
                 padding: "0.3rem 0.75rem",
-                background: "rgba(239,68,68,0.1)", color: "#f87171",
-                border: "1px solid rgba(239,68,68,0.2)",
+                background: "var(--danger-soft)", color: "var(--danger)",
+                border: "1px solid var(--danger-line)",
                 borderRadius: "7px", cursor: "pointer",
                 fontFamily: "'DM Sans', sans-serif", fontSize: "0.82rem"
               }}>Remove</button>
