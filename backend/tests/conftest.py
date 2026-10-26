@@ -2,7 +2,8 @@ import os
 import sys
 from pathlib import Path
 
-os.environ["SECRET_KEY"] = "test-secret-only-not-for-deployment"
+os.environ['SESSION_COOKIE_SECURE'] = 'false'
+os.environ['ALLOWED_ORIGINS'] = 'http://localhost:5173,http://127.0.0.1:4178'
 os.environ["ANTHROPIC_API_KEY"] = "test-key-no-network"
 os.environ["DATABASE_URL"] = "sqlite://"
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
@@ -33,7 +34,9 @@ def api(tmp_path, monkeypatch):
     monkeypatch.setattr(upload, "UPLOAD_DIR", tmp_path / "uploads")
     app.dependency_overrides[get_db] = lambda: db
     app.dependency_overrides[get_current_user] = lambda: user
-    with TestClient(app) as client:
+    with TestClient(app, headers={'Origin': 'http://localhost:5173'}) as client:
+        bootstrap = client.get('/auth/session').json()
+        client.headers['X-CSRF-Token'] = bootstrap['csrf_token']
         yield client, db, user, other
     app.dependency_overrides.clear()
     game_manager.rooms.clear()

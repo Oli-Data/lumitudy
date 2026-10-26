@@ -1,6 +1,6 @@
 import { StarIcon, SparkIcon } from './components/LumitudyIcons'
 import { useState, useEffect, useRef } from "react"
-import axios from "axios"
+import axios from "./api"
 import { useAuth } from "./context/AuthContext"
 import Upload from "./components/Upload"
 import ChapterSelect from "./components/ChapterSelect"
@@ -25,7 +25,7 @@ function SourceQuote({ quote }) {
 }
 
 export default function App() {
-  const { user, username, friendCode, logout, loading } = useAuth()
+  const { user, username, friendCode, logout, loading, authError, loggingOut } = useAuth()
   const [fileData, setFileData] = useState(null)
   const [flashcards, setFlashcards] = useState([])
   const [currentCard, setCurrentCard] = useState(0)
@@ -57,7 +57,7 @@ export default function App() {
 
   const fetchSavedSets = async () => {
     try {
-      const res = await axios.get(`${import.meta.env.VITE_API_URL}/sets/`)
+      const res = await axios.get(`/sets/`)
       setSavedSets(res.data)
     } catch (err) {
       console.error("Failed to fetch saved sets")
@@ -95,7 +95,7 @@ export default function App() {
 
   const deleteSet = async (id) => {
     try {
-      await axios.delete(`${import.meta.env.VITE_API_URL}/sets/${id}`)
+      await axios.delete(`/sets/${id}`)
       fetchSavedSets()
     } catch (err) {
       console.error("Failed to delete set")
@@ -103,7 +103,7 @@ export default function App() {
   }
 
   if (loading) return null
-  if (!user) return <Auth />
+  if (!user) return <>{authError && <p role="alert">{authError}</p>}<Auth /></>
 
   return (
     <>
@@ -142,7 +142,7 @@ export default function App() {
                   👥 Friends
                 </button>
                 <div className="dropdown-divider" />
-                <button className="dropdown-item danger" onClick={logout}>
+                <button className="dropdown-item danger" disabled={loggingOut} onClick={logout}>
                   ⎋ Logout
                 </button>
               </div>
@@ -152,6 +152,7 @@ export default function App() {
         </header>
 
         <main id="study-workspace">
+        {authError && <p role="alert">{authError}</p>}
         <section className="study-hero">
           <div><span className="eyebrow">YOUR PERSONAL STUDY SPACE</span>
           <h1>A little focus.<br /><em>A lot of possibility.</em></h1>

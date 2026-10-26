@@ -1,10 +1,10 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { cleanup, render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import axios from 'axios'
+import axios from '../api'
 import ExamMode from './ExamMode'
 
-vi.mock('axios', () => ({ default: { post: vi.fn(), get: vi.fn() } }))
+vi.mock('../api', () => ({ default: { post: vi.fn(), get: vi.fn() } }))
 const questions = [
   { question: 'First?', options: ['a', 'b', 'c', 'd'] },
   { question: 'Second?', options: ['a', 'b', 'c', 'd'] },

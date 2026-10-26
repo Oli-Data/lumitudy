@@ -1,5 +1,5 @@
 import { useState, useRef } from "react"
-import axios from "axios"
+import axios from "../api"
 
 function ExamMode({ fileData, onExit }) {
   const [selectedChapter, setSelectedChapter] = useState(fileData.chapters[0])
@@ -23,7 +23,7 @@ function ExamMode({ fileData, onExit }) {
     setLoading(true)
     setError(null)
     try {
-      const res = await axios.post(`${import.meta.env.VITE_API_URL}/flashcards/exam`, {
+      const res = await axios.post(`/flashcards/exam`, {
         file_path: fileData.file_path,
         chapter: selectedChapter,
         num_questions: numQuestions
@@ -55,7 +55,7 @@ function ExamMode({ fileData, onExit }) {
     setBusy(true)
     setError(null)
     try {
-      const { data } = await axios.post(`${import.meta.env.VITE_API_URL}/flashcards/exam/${examId}/answer`, {
+      const { data } = await axios.post(`/flashcards/exam/${examId}/answer`, {
         question_index: currentQ,
         answer_index: selected
       })
@@ -84,7 +84,7 @@ function ExamMode({ fileData, onExit }) {
       setBusy(true)
       setError(null)
       try {
-        const { data } = await axios.post(`${import.meta.env.VITE_API_URL}/scores/`, { exam_id: examId })
+        const { data } = await axios.post(`/scores/`, { exam_id: examId })
         setScore(data.score)
         setFinished(true)
         await fetchLeaderboard()
@@ -103,7 +103,7 @@ function ExamMode({ fileData, onExit }) {
 
   const fetchLeaderboard = async () => {
     try {
-      const res = await axios.get(`${import.meta.env.VITE_API_URL}/scores/${encodeURIComponent(selectedChapter)}`)
+      const res = await axios.get(`/scores/${encodeURIComponent(selectedChapter)}`)
       setLeaderboard(res.data)
     } catch {
       console.error("Failed to fetch leaderboard")

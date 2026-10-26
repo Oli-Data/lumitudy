@@ -13,7 +13,19 @@ from database import UserFile, ExamAttempt, Score
 from game_manager import GameRoom, game_manager
 from routers import flashcards, game, upload
 from services import ai, storage
-from services.auth import get_current_user, create_access_token
+from services.auth import get_current_user, issue_session
+from services.session_config import COOKIE_NAME
+from fastapi import Response
+from starlette.websockets import WebSocketDisconnect
+from http.cookies import SimpleCookie
+
+
+def browser_headers(db, user):
+    response = Response()
+    session = issue_session(response, db, user.id)
+    cookie = SimpleCookie(response.headers['set-cookie'])[COOKIE_NAME].value
+    return {'Cookie': f'{COOKIE_NAME}={cookie}', 'X-CSRF-Token': session.csrf_token,
+            'Origin': 'http://localhost:5173'}
 from services.parser import parse_pdf
 from main import app
 
@@ -295,17 +307,18 @@ def test_saved_game_questions_use_real_shuffled_answers(api):
 
 
 def test_websocket_rejects_impersonation_and_duplicate_start(api, monkeypatch):
-    client, _, user, _ = api
+    client, db, user, _ = api
     code = game_manager.create_room(user.username, copy.deepcopy(QUESTIONS))
-    with client.websocket_connect(f"/game/ws/{code}/owner?token=invalid") as ws:
-        assert ws.receive_json()["type"] == "error"
-    token = create_access_token({"sub": user.email})
+    with pytest.raises(WebSocketDisconnect):
+        with client.websocket_connect(f"/game/ws/{code}/owner?token=invalid", headers={'Cookie': ''}):
+            pass
+    headers = browser_headers(db, user)
     calls = []
     async def fake_loop(room):
         calls.append(room)
         await asyncio.sleep(60)
     monkeypatch.setattr(game, "start_game_loop", fake_loop)
-    with client.websocket_connect(f"/game/ws/{code}/owner?token={token}") as ws:
+    with client.websocket_connect(f"/game/ws/{code}/owner", headers=headers) as ws:
         assert ws.receive_json()["type"] == "player_joined"
         ws.send_json({"type": "start_game"})
         ws.send_json({"type": "start_game"})
@@ -335,10 +348,60 @@ def test_game_finishes_and_can_restart_without_accepting_old_answers(monkeypatch
 
 
 def test_http_upload_requires_real_authentication(api):
-    client, _, user, _ = api
+    client, db, user, _ = api
     app.dependency_overrides.pop(get_current_user)
     assert client.post("/upload/", files={"file": ("book.pdf", pdf_bytes(), "application/pdf")}).status_code == 401
-    token = create_access_token({"sub": user.email})
-    response = client.post("/upload/", headers={"Authorization": f"Bearer {token}"},
+    response = client.post("/upload/", headers=browser_headers(db, user),
                            files={"file": ("book.pdf", pdf_bytes(), "application/pdf")})
     assert response.status_code == 200
+
+
+def test_bookshelf_accounts_host_and_join_live_round(api, monkeypatch):
+    """Exercise real auth, upload ownership, and two-player transport with fixed quiz content."""
+    client, db, _, _ = api
+    app.dependency_overrides.pop(get_current_user)
+    credentials = []
+    for name in ('shelf_host', 'shelf_guest'):
+        client.cookies.clear()
+        client.headers['X-CSRF-Token'] = client.get('/auth/session').json()['csrf_token']
+        payload = {'email': f'{name}@example.test', 'username': name, 'password': 'Local-test-password'}
+        signup = client.post('/auth/register', json=payload)
+        assert signup.status_code == 200
+        client.headers['X-CSRF-Token'] = signup.json()['csrf_token']
+        login = client.post('/auth/login', json={'email': payload['email'], 'password': payload['password']})
+        assert login.status_code == 200
+        client.headers['X-CSRF-Token'] = login.json()['csrf_token']
+        headers = {'Cookie': f'{COOKIE_NAME}={client.cookies.get(COOKIE_NAME)}',
+                   'X-CSRF-Token': login.json()['csrf_token'], 'Origin': 'http://localhost:5173'}
+        assert client.get('/auth/me', headers=headers).json()['username'] == name
+        credentials.append(headers)
+    host_headers, guest_headers = credentials
+    assert client.post('/auth/login', json={'email':'shelf_host@example.test','password':'wrong'}).status_code == 401
+    uploaded = client.post('/upload/', headers=host_headers,
+                           files={'file': ('book.pdf', pdf_bytes(), 'application/pdf')})
+    assert uploaded.status_code == 200
+    book = uploaded.json()
+    assert len(client.get('/upload/files', headers=host_headers).json()) == 1
+    assert client.get('/upload/files', headers=guest_headers).json() == []
+    monkeypatch.setattr(game, 'generate_exam', lambda *args, **kwargs: copy.deepcopy(QUESTIONS[:1]))
+    created = client.post('/game/create', headers=host_headers,
+                          json={'file_path':book['file_path'], 'chapter':book['chapters'][0], 'num_questions':1})
+    assert created.status_code == 200
+    code = created.json()['game_code']
+    with client.websocket_connect(f'/game/ws/{code}/shelf_host', headers=host_headers) as host:
+        assert host.receive_json()['type'] == 'player_joined'
+        with client.websocket_connect(f'/game/ws/{code}/shelf_guest', headers=guest_headers) as guest:
+            assert host.receive_json()['players'] == ['shelf_host', 'shelf_guest']
+            assert guest.receive_json()['type'] == 'player_joined'
+            host.send_json({'type':'start_game'})
+            question = host.receive_json()
+            assert question['type'] == 'question'
+            assert guest.receive_json()['question_id'] == question['question_id']
+            for socket in (host, guest):
+                socket.send_json({'type':'submit_answer','question_id':question['question_id'],'answer_index':1})
+                assert socket.receive_json()['correct'] is True
+            for socket in (host, guest):
+                results = socket.receive_json()
+                assert results['type'] == 'question_result'
+                assert len(results['leaderboard']) == 2
+                assert socket.receive_json()['type'] == 'game_over'

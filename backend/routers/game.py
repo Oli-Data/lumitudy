@@ -8,12 +8,16 @@ from routers.flashcards import chapter_material
 from uuid import uuid4
 import random
 from database import get_db
-from services.auth import get_current_user, get_user_from_token
+from services.auth import get_current_user, read_session
+from services.session_config import COOKIE_NAME, ALLOWED_ORIGINS
+from services.session_sockets import watch_session, unwatch_session
+from contextlib import suppress
 from services.ai import generate_exam
 from game_manager import game_manager
 from database import User
 
 router = APIRouter(prefix="/game", tags=["game"])
+SESSION_RECHECK_SECONDS = 15
 
 class CreateGameRequest(BaseModel):
     """Request model for creating a new game"""
@@ -107,17 +111,20 @@ async def update_questions(
 
 @router.websocket("/ws/{game_code}/{username}")
 async def game_websocket(websocket: WebSocket, game_code: str, username: str, db: Session = Depends(get_db)):
-    await websocket.accept()
-
-    # Verify the connecting client actually owns this username via their JWT
-    # (sent as a query param since browsers can't set custom WS headers).
-    # Without this, anyone could pass any username in the URL and impersonate
-    # another player or the host.
-    authed_user = get_user_from_token(websocket.query_params.get("token"), db)
-    if not authed_user or authed_user.username != username:
-        await websocket.send_json({"type": "error", "message": "Authentication failed"})
-        await websocket.close()
+    # Browser cookies are ambient: validate Origin before accepting a connection.
+    if websocket.headers.get('origin') not in ALLOWED_ORIGINS:
+        await websocket.close(code=1008)
         return
+    token = websocket.cookies.get(COOKIE_NAME)
+    session = read_session(token, db)
+    authed_user = db.get(User, session.user_id) if session and session.user_id is not None else None
+    if not authed_user or authed_user.username != username:
+        await websocket.close(code=1008)
+        return
+    token_hash = session.token_hash
+    session_user_id = authed_user.id
+    db.rollback()
+    await websocket.accept()
 
     room = game_manager.get_room(game_code)
     if not room:
@@ -138,14 +145,41 @@ async def game_websocket(websocket: WebSocket, game_code: str, username: str, db
         "host": room.host_username
     })
 
+    revoked = watch_session(token_hash)
+
+    def valid_session(touch=False):
+        # End the previous read transaction so revocation in another process is visible.
+        db.rollback()
+        db.expire_all()
+        current = read_session(token, db, touch=touch)
+        valid = current is not None and current.user_id == session_user_id
+        db.rollback()  # Release the connection while waiting for the next socket message.
+        return valid
+
+    async def guard_session():
+        while True:
+            try:
+                await asyncio.wait_for(revoked.wait(), timeout=SESSION_RECHECK_SECONDS)
+            except asyncio.TimeoutError:
+                pass
+            if revoked.is_set() or not valid_session():
+                await websocket.close(code=1008, reason='Your session ended. Please sign in again.')
+                return
+
+    guard = asyncio.create_task(guard_session())
     try:
         while True:
             try:
                 # Wait for message with timeout to send keepalive pings
                 data = await asyncio.wait_for(websocket.receive_json(), timeout=15)
+                if revoked.is_set() or not valid_session():
+                    await websocket.close(code=1008)
+                    break
                 if not isinstance(data, dict):
                     continue
                 msg_type = data.get("type")
+                if msg_type in ('start_game', 'submit_answer'):
+                    valid_session(touch=True)
 
                 if msg_type == "start_game" and username == room.host_username:
                     if room.state == "lobby" and room.questions:
@@ -165,9 +199,13 @@ async def game_websocket(websocket: WebSocket, game_code: str, username: str, db
                 except Exception:
                     break
 
-    except (WebSocketDisconnect, ValueError):
+    except (WebSocketDisconnect, ValueError, RuntimeError):
         pass
     finally:
+        guard.cancel()
+        with suppress(asyncio.CancelledError, RuntimeError, WebSocketDisconnect):
+            await guard
+        unwatch_session(token_hash, revoked)
         room.remove_player(username)
         await room.broadcast({
             "type": "player_left",

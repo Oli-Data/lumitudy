@@ -22,3 +22,9 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# Separate local Observatory prototype output
+dist-observatory/
+
+# Isolated local-preview accounts, session key, and uploads
+.preview-data/

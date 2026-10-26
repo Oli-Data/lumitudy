@@ -1,97 +1,59 @@
-import { createContext, useContext, useState, useEffect } from "react"
-import axios from "axios"
+import { createContext, useContext, useState, useEffect } from 'react'
+import api, { getSession, setSession } from '../api'
 
 const AuthContext = createContext()
 
 export function AuthProvider({ children }) {
-  const [user, setUser] = useState(null)
-  const [username, setUsername] = useState(localStorage.getItem("username"))
-  const [friendCode, setFriendCode] = useState(localStorage.getItem("friend_code"))
-  const [token, setToken] = useState(localStorage.getItem("token"))
+  const [identity, setIdentity] = useState(null)
   const [loading, setLoading] = useState(true)
+  const [authError, setAuthError] = useState(null)
+  const [loggingOut, setLoggingOut] = useState(false)
 
   useEffect(() => {
-    if (token) {
-      axios.defaults.headers.common["Authorization"] = `Bearer ${token}`
-    }
-  }, [token])
-
-  // On first load, validate any stored token against the backend and
-  // restore the session instead of always dropping the user back to the
-  // login screen on refresh. If the token is missing, invalid, or expired,
-  // the stored session is cleared and the user sees the login screen.
-  useEffect(() => {
-    const restoreSession = async () => {
-      const storedToken = localStorage.getItem("token")
-      if (!storedToken) {
-        setLoading(false)
-        return
-      }
-      try {
-        axios.defaults.headers.common["Authorization"] = `Bearer ${storedToken}`
-        const res = await axios.get(`${import.meta.env.VITE_API_URL}/auth/me`)
-        setUser(res.data.email)
-        setUsername(res.data.username)
-        setFriendCode(res.data.friend_code)
-        setToken(storedToken)
-      } catch (err) {
-        localStorage.removeItem("token")
-        localStorage.removeItem("username")
-        localStorage.removeItem("friend_code")
-        delete axios.defaults.headers.common["Authorization"]
-        setToken(null)
-        setUser(null)
-      } finally {
-        setLoading(false)
-      }
-    }
-    restoreSession()
+    let active = true
+    // Remove credentials left by the former bearer-token implementation.
+    try { ['token', 'username', 'friend_code'].forEach(key => localStorage.removeItem(key)) } catch { /* Storage is optional. */ }
+    const expired = () => { setIdentity(null); setAuthError('Your session ended. Please sign in again.') }
+    window.addEventListener('lumitudy:session-expired', expired)
+    getSession().then(data => {
+      if (active) { setIdentity(data.user); setAuthError(null) }
+    }).catch(() => {
+      if (active) setAuthError('We could not check your account. Please retry when the connection is back.')
+    }).finally(() => { if (active) setLoading(false) })
+    return () => { active = false; window.removeEventListener('lumitudy:session-expired', expired) }
   }, [])
 
-  const login = async (email, password) => {
-    const res = await axios.post(`${import.meta.env.VITE_API_URL}/auth/login`, { email, password })
-    const t = res.data.access_token
-    localStorage.setItem("token", t)
-    localStorage.setItem("username", res.data.username)
-    localStorage.setItem("friend_code", res.data.friend_code)
-    setToken(t)
-    setUser(email)
-    setUsername(res.data.username)
-    setFriendCode(res.data.friend_code)
-    axios.defaults.headers.common["Authorization"] = `Bearer ${t}`
+  async function authenticate(path, values) {
+    const { data } = await api.post(path, values)
+    setSession(data)
+    setIdentity(data.user)
+    setAuthError(null)
   }
 
-  const register = async (email, username, password) => {
-    const res = await axios.post(`${import.meta.env.VITE_API_URL}/auth/register`, { email, username, password })
-    const t = res.data.access_token
-    localStorage.setItem("token", t)
-    localStorage.setItem("username", res.data.username)
-    localStorage.setItem("friend_code", res.data.friend_code)
-    setToken(t)
-    setUser(email)
-    setUsername(res.data.username)
-    setFriendCode(res.data.friend_code)
-    axios.defaults.headers.common["Authorization"] = `Bearer ${t}`
+  async function logout() {
+    if (loggingOut) return
+    setLoggingOut(true)
+    try {
+      await api.post('/auth/logout')
+      setSession(null)
+      setIdentity(null)
+      setAuthError(null)
+    } catch (error) {
+      if (error.response?.status === 401) {
+        setSession(null)
+        setIdentity(null)
+      } else {
+        setAuthError('Logout did not finish. Check your connection and try again; your session is still active.')
+      }
+    } finally { setLoggingOut(false) }
   }
 
-  const logout = () => {
-    localStorage.removeItem("token")
-    localStorage.removeItem("username")
-    localStorage.removeItem("friend_code")
-    setToken(null)
-    setUser(null)
-    setUsername(null)
-    setFriendCode(null)
-    delete axios.defaults.headers.common["Authorization"]
-  }
-
-  return (
-    <AuthContext.Provider value={{ user, username, friendCode, token, login, register, logout, loading }}>
-      {children}
-    </AuthContext.Provider>
-  )
+  return <AuthContext.Provider value={{
+    user: identity?.email || null, username: identity?.username || null,
+    friendCode: identity?.friend_code || null, loading, authError, loggingOut, logout,
+    login: (email, password) => authenticate('/auth/login', { email, password }),
+    register: (email, username, password) => authenticate('/auth/register', { email, username, password }),
+  }}>{children}</AuthContext.Provider>
 }
 
-export function useAuth() {
-  return useContext(AuthContext)
-}
+export function useAuth() { return useContext(AuthContext) }

@@ -1,79 +1,88 @@
-import bcrypt
-from jose import JWTError, jwt
+import hashlib
+import secrets
 from datetime import datetime, timedelta
-from fastapi import Depends, HTTPException, status
-from fastapi.security import OAuth2PasswordBearer
+import bcrypt
+from fastapi import Depends, HTTPException, Request, Response
 from sqlalchemy.orm import Session
-from database import get_db, User, UserFile
-import os
+from starlette.requests import HTTPConnection
+from database import get_db, User, UserFile, BrowserSession
 from services.storage import user_file_path
+from services.session_config import (COOKIE_NAME, COOKIE_SECURE, ALLOWED_ORIGINS,
+    SESSION_MAX_AGE, SESSION_IDLE_SECONDS, ANONYMOUS_MAX_AGE)
 
-# JWT configuration
-SECRET_KEY = os.getenv("SECRET_KEY")
-if not SECRET_KEY:
-    raise RuntimeError(
-        "SECRET_KEY environment variable is not set. "
-        "Set it in backend/.env for local dev, or in Render's Environment tab for production."
-    )
-    
-ALGORITHM = "HS256"
-ACCESS_TOKEN_EXPIRE_MINUTES = 60 * 24 * 7  # 7 days
-
-# OAuth2 scheme for token extraction from Authorization header
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="auth/login")
 
 def hash_password(password: str) -> str:
-    """Hash a plain text password using bcrypt"""
     return bcrypt.hashpw(password.encode("utf-8"), bcrypt.gensalt()).decode("utf-8")
 
+
 def verify_password(plain: str, hashed: str) -> bool:
-    """Verify a plain text password against a bcrypt hash"""
-    return bcrypt.checkpw(plain.encode("utf-8"), hashed.encode("utf-8"))
-
-def create_access_token(data: dict) -> str:
-    """Create a signed JWT token with expiration"""
-    to_encode = data.copy()
-    expire = datetime.utcnow() + timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
-    to_encode.update({"exp": expire})
-    return jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
-
-def get_current_user(token: str = Depends(oauth2_scheme), db: Session = Depends(get_db)):
-    """Dependency that validates JWT token and returns the current user"""
-    credentials_exception = HTTPException(
-        status_code=status.HTTP_401_UNAUTHORIZED,
-        detail="Could not validate credentials"
-    )
     try:
-        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
-        email: str = payload.get("sub")
-        if email is None:
-            raise credentials_exception
-    except JWTError:
-        raise credentials_exception
+        return bcrypt.checkpw(plain.encode("utf-8"), hashed.encode("utf-8"))
+    except ValueError:
+        return False
 
-    user = db.query(User).filter(User.email == email).first()
+
+def session_hash(token: str) -> str:
+    return hashlib.sha256(token.encode()).hexdigest()
+
+
+def read_session(token: str | None, db: Session, *, touch=False):
+    if not token or len(token) > 128:
+        return None
+    session = db.get(BrowserSession, session_hash(token))
+    now = datetime.utcnow()
+    if (session is None or session.expires_at <= now
+            or (now - session.last_seen_at).total_seconds() >= SESSION_IDLE_SECONDS):
+        return None
+    # Avoid a database write on every asset request or multiplayer heartbeat.
+    if touch and (now - session.last_seen_at).total_seconds() >= 60:
+        session.last_seen_at = now
+        db.commit()
+    return session
+
+
+def issue_session(response: Response, db: Session, user_id=None):
+    token = secrets.token_urlsafe(32)
+    lifetime = SESSION_MAX_AGE if user_id is not None else ANONYMOUS_MAX_AGE
+    now = datetime.utcnow()
+    db.query(BrowserSession).filter(BrowserSession.expires_at <= now).delete(synchronize_session=False)
+    session = BrowserSession(token_hash=session_hash(token), user_id=user_id,
+        csrf_token=secrets.token_urlsafe(32), created_at=now, last_seen_at=now,
+        expires_at=now + timedelta(seconds=lifetime))
+    db.add(session)
+    db.commit()
+    response.set_cookie(COOKIE_NAME, token, max_age=lifetime, path='/',
+                        secure=COOKIE_SECURE, httponly=True, samesite='lax')
+    return session
+
+
+def require_trusted_origin(origin: str | None):
+    if origin not in ALLOWED_ORIGINS:
+        raise HTTPException(status_code=403, detail='This website is not allowed to make this request.')
+
+
+def protect_browser_request(request: HTTPConnection, db: Session = Depends(get_db)):
+    """Protect every mutation, including login, registration, and multipart uploads."""
+    if request.scope['type'] == 'websocket':
+        return
+    if request.method in ('GET', 'HEAD', 'OPTIONS'):
+        return
+    require_trusted_origin(request.headers.get('origin'))
+    session = read_session(request.cookies.get(COOKIE_NAME), db)
+    if session is None:
+        raise HTTPException(status_code=401, detail='Your session expired. Please sign in again.')
+    csrf = request.headers.get('x-csrf-token', '')
+    if not secrets.compare_digest(csrf.encode('utf-8'), session.csrf_token.encode('utf-8')):
+        raise HTTPException(status_code=403, detail='Session verification failed. Refresh the page and try again.')
+
+
+def get_current_user(request: Request, db: Session = Depends(get_db)):
+    session = read_session(request.cookies.get(COOKIE_NAME), db, touch=True)
+    user = db.get(User, session.user_id) if session and session.user_id is not None else None
     if user is None:
-        raise credentials_exception
+        raise HTTPException(status_code=401, detail='Please sign in to continue.')
     return user
 
-def get_user_from_token(token: str, db: Session):
-    """
-    Decode a JWT and return the matching user, or None if the token is
-    missing, invalid, expired, or doesn't match a real user.
-    Used for WebSocket auth, where there's no Authorization header for
-    oauth2_scheme to hook into (browsers can't set custom WS headers), so
-    the token arrives as a query param instead and is checked by hand.
-    """
-    if not token:
-        return None
-    try:
-        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
-        email: str = payload.get("sub")
-        if email is None:
-            return None
-    except JWTError:
-        return None
-    return db.query(User).filter(User.email == email).first()
 
 def verify_file_ownership(file_path: str, current_user: User, db: Session):
     """Raise 403 if the given file_path doesn't belong to current_user."""

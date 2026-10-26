@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react"
-import axios from "axios"
+import axios from "../api"
 
 function FileLibrary({ onFileSelect }) {
   const [files, setFiles] = useState([])
@@ -11,7 +11,7 @@ function FileLibrary({ onFileSelect }) {
 
   const fetchFiles = async () => {
     try {
-      const res = await axios.get(`${import.meta.env.VITE_API_URL}/upload/files`)
+      const res = await axios.get(`/upload/files`)
       setFiles(res.data)
     } catch (err) {
       console.error("Failed to fetch files")
@@ -22,7 +22,7 @@ function FileLibrary({ onFileSelect }) {
 
   const handleDelete = async (id) => {
     try {
-      await axios.delete(`${import.meta.env.VITE_API_URL}/upload/files/${id}`)
+      await axios.delete(`/upload/files/${id}`)
       fetchFiles()
     } catch (err) {
       console.error("Failed to delete file")

@@ -1,9 +1,9 @@
 import { useState, useEffect, useRef } from "react"
-import axios from "axios"
+import axios from "../api"
 import { useAuth } from "../context/AuthContext"
 
-function Kahoot({ fileData, onExit }) {
-  const { username, token } = useAuth()
+function Kahoot({ fileData, onExit, intent = "both" }) {
+  const { username } = useAuth()
   const [mode, setMode] = useState("menu")
   const [gameCode, setGameCode] = useState("")
   const [joinCode, setJoinCode] = useState("")
@@ -36,21 +36,34 @@ function Kahoot({ fileData, onExit }) {
 
   useEffect(() => {
     return () => {
-      if (wsRef.current) wsRef.current.close()
+      if (wsRef.current) { wsRef.current.onclose = null; wsRef.current.onerror = null; wsRef.current.onopen = null; wsRef.current.onmessage = null; wsRef.current.close() }
       if (timerRef.current) clearInterval(timerRef.current)
     }
   }, [])
 
   const connectWebSocket = (code, asHost) => {
-    const wsUrl = `${import.meta.env.VITE_API_URL.replace("https", "wss").replace("http", "ws")}/game/ws/${code}/${username}?token=${encodeURIComponent(token)}`
-    const ws = new WebSocket(wsUrl)
+    const base = new URL(import.meta.env.VITE_API_URL || '/api', window.location.origin)
+    base.protocol = base.protocol === 'https:' ? 'wss:' : 'ws:'
+    base.pathname = `${base.pathname.replace(/\/$/, '')}/game/ws/${encodeURIComponent(code)}/${encodeURIComponent(username)}`
+    base.search = ''
+    base.hash = ''
+    if (wsRef.current) {
+      wsRef.current.onclose = null
+      wsRef.current.onerror = null
+      wsRef.current.onopen = null
+      wsRef.current.onmessage = null
+      wsRef.current.close()
+    }
+    setLoading(true)
+    const ws = new WebSocket(base.href)
     wsRef.current = ws
 
     ws.onopen = () => {
+      setLoading(false)
       setMode("lobby")
       setIsHost(asHost)
       setGameCode(code)
-      axios.get(`${import.meta.env.VITE_API_URL}/sets/`).then(res => setSavedSets(res.data)).catch(() => {})
+      if (asHost) axios.get(`/sets/`).then(res => setSavedSets(res.data)).catch(() => {})
     }
 
     ws.onmessage = (event) => {
@@ -59,12 +72,16 @@ function Kahoot({ fileData, onExit }) {
     }
 
     ws.onerror = () => {
+      setLoading(false)
       setError("Connection failed. Please try again.")
       setMode("menu")
     }
 
-    ws.onclose = () => {
+    ws.onclose = (event) => {
       if (timerRef.current) clearInterval(timerRef.current)
+      setLoading(false)
+      setMode('menu')
+      setError(previous => previous || (event?.code === 1008 ? 'Your session ended. Please sign in again.' : 'The game connection closed. You can join again with the code.'))
     }
   }
 
@@ -142,7 +159,7 @@ function Kahoot({ fileData, onExit }) {
     setLoading(true)
     setError(null)
     try {
-      const res = await axios.post(`${import.meta.env.VITE_API_URL}/game/create`, {
+      const res = await axios.post(`/game/create`, {
         file_path: fileData.file_path,
         chapter: selectedChapter,
         num_questions: numQuestions
@@ -150,15 +167,14 @@ function Kahoot({ fileData, onExit }) {
       connectWebSocket(res.data.game_code, true)
     } catch (err) {
       setError(typeof err.response?.data?.detail === "string" ? err.response.data.detail : "Failed to create game. Please try again.")
-    } finally {
       setLoading(false)
     }
   }
 
   const joinGame = () => {
-    if (!joinCode.trim()) return
+    if (loading || !joinCode.trim()) return
     setError(null)
-    connectWebSocket(joinCode.toUpperCase(), false)
+    connectWebSocket(joinCode.trim().toUpperCase(), false)
   }
 
   const startGame = () => {
@@ -185,7 +201,7 @@ function Kahoot({ fileData, onExit }) {
     if (!fileData) return
     setUpdatingQuestions(true)
     try {
-      const res = await axios.post(`${import.meta.env.VITE_API_URL}/game/${gameCode}/update-questions`, {
+      const res = await axios.post(`/game/${gameCode}/update-questions`, {
         file_path: fileData.file_path,
         chapter: selectedChapter,
         num_questions: numQuestions
@@ -202,7 +218,7 @@ function Kahoot({ fileData, onExit }) {
   const updateQuestionsFromSet = async (set) => {
     setUpdatingQuestions(true)
     try {
-      const res = await axios.post(`${import.meta.env.VITE_API_URL}/game/${gameCode}/update-questions`, {
+      const res = await axios.post(`/game/${gameCode}/update-questions`, {
         cards: set.cards,
         num_questions: set.cards.length
       })
@@ -263,7 +279,7 @@ function Kahoot({ fileData, onExit }) {
       <div style={glassPanel}>
         <div style={topLine} />
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "1.25rem" }}>
-          <p style={{ ...panelTitle, marginBottom: 0 }}>Kahoot Mode</p>
+          <p style={{ ...panelTitle, marginBottom: 0 }}>{intent === "host" ? "Host a game" : intent === "join" ? "Join a game" : "Play together"}</p>
           <button onClick={onExit} style={{
             padding: "0.4rem 1rem",
             background: "var(--surface)",
@@ -274,11 +290,11 @@ function Kahoot({ fileData, onExit }) {
           }}>Back</button>
         </div>
 
-        {fileData && (
+        {fileData && intent !== "join" && (
           <div style={{ marginBottom: "1.5rem" }}>
-            <p style={panelTitle}>Host a Game</p>
+            {intent === "both" && <p style={panelTitle}>Host a Game</p>}
             <label style={{ color: "var(--muted)", fontSize: "0.88rem", display: "block", marginBottom: "0.4rem" }}>Chapter:</label>
-            <select value={selectedChapter} onChange={(e) => setSelectedChapter(e.target.value)} style={{ marginBottom: "0.75rem" }}>
+            <select aria-label="Chapter to play" value={selectedChapter} onChange={(e) => setSelectedChapter(e.target.value)} style={{ marginBottom: "0.75rem" }}>
               {fileData.chapters.map(c => <option key={c} value={c}>{c}</option>)}
             </select>
             <label style={{ color: "var(--muted)", fontSize: "0.88rem", display: "block", marginBottom: "0.4rem" }}>
@@ -289,23 +305,26 @@ function Kahoot({ fileData, onExit }) {
               style={{ width: "100%", marginBottom: "0.75rem", accentColor: "var(--accent)" }}
             />
             <button onClick={createGame} disabled={loading} style={btnPrimary}>
-              {loading ? "Creating game..." : "🎮 Create Game"}
+              {loading ? "Creating game..." : "Create game"}
             </button>
           </div>
         )}
 
+        {intent !== "host" && <>
         <div>
-          <p style={panelTitle}>Join a Game</p>
+          {intent === "both" && <p style={panelTitle}>Join a Game</p>}
           <div style={{ display: "flex", gap: "0.5rem" }}>
             <input
               type="text"
-              placeholder="Enter game code (e.g. GAME-AB12)"
+              aria-label="Game code"
+              placeholder="GAME-AB12"
+              maxLength={32}
               value={joinCode}
               onChange={(e) => setJoinCode(e.target.value)}
               onKeyDown={(e) => e.key === "Enter" && joinGame()}
               style={{ flex: 1 }}
             />
-            <button onClick={joinGame} style={{
+            <button disabled={loading || !joinCode.trim()} onClick={joinGame} style={{
               padding: "0.65rem 1.1rem",
               background: "var(--mint-soft)",
               color: "var(--accent)",
@@ -313,11 +332,12 @@ function Kahoot({ fileData, onExit }) {
               borderRadius: "9px", cursor: "pointer",
               fontFamily: "'DM Sans', sans-serif", fontSize: "0.88rem",
               whiteSpace: "nowrap"
-            }}>Join</button>
+            }}>{loading ? "Connecting…" : "Join game"}</button>
           </div>
         </div>
 
-        {error && <p style={{ color: "var(--danger)", marginTop: "0.75rem", fontSize: "0.88rem" }}>{error}</p>}
+        </>}
+        {error && <p role="alert" style={{ color: "var(--danger)", marginTop: "0.75rem", fontSize: "0.88rem" }}>{error}</p>}
       </div>
     )
   }
@@ -476,7 +496,7 @@ function Kahoot({ fileData, onExit }) {
                 border: "1px solid var(--gold-line)"
               }}
             >
-              🚀 Start Game
+              Start game
             </button>
           ) : (
             <p style={{ textAlign: "center", color: "var(--muted)", fontSize: "0.88rem" }}>

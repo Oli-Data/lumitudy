@@ -32,6 +32,17 @@ class User(Base):
     hashed_password = Column(String)
     created_at = Column(DateTime, default=datetime.utcnow)
 
+class BrowserSession(Base):
+    """Only a hash of the opaque browser credential is stored in SQL."""
+    __tablename__ = "browser_sessions"
+    token_hash = Column(String(64), primary_key=True)
+    user_id = Column(Integer, nullable=True, index=True)
+    csrf_token = Column(String(64), nullable=False)
+    created_at = Column(DateTime, nullable=False, default=datetime.utcnow)
+    last_seen_at = Column(DateTime, nullable=False, default=datetime.utcnow)
+    expires_at = Column(DateTime, nullable=False, index=True)
+
+
 class FlashcardSet(Base):
     """Stores saved flashcard sets tied to a user"""
     __tablename__ = "flashcard_sets"

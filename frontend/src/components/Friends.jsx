@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react"
-import axios from "axios"
+import axios from "../api"
 import { useAuth } from "../context/AuthContext"
 
 function Friends({ onClose }) {
@@ -18,7 +18,7 @@ function Friends({ onClose }) {
 
   const fetchFriends = async () => {
     try {
-      const res = await axios.get(`${import.meta.env.VITE_API_URL}/friends/`)
+      const res = await axios.get(`/friends/`)
       setFriends(res.data)
     } catch (err) {
       console.error("Failed to fetch friends")
@@ -27,7 +27,7 @@ function Friends({ onClose }) {
 
   const fetchRequests = async () => {
     try {
-      const res = await axios.get(`${import.meta.env.VITE_API_URL}/friends/requests`)
+      const res = await axios.get(`/friends/requests`)
       setRequests(res.data)
     } catch (err) {
       console.error("Failed to fetch requests")
@@ -40,7 +40,7 @@ function Friends({ onClose }) {
     setMessage(null)
     setError(null)
     try {
-      await axios.post(`${import.meta.env.VITE_API_URL}/friends/request`, { friend_code: code.toUpperCase() })
+      await axios.post(`/friends/request`, { friend_code: code.toUpperCase() })
       setMessage("Friend request sent!")
       setCode("")
     } catch (err) {
@@ -52,7 +52,7 @@ function Friends({ onClose }) {
 
   const acceptRequest = async (id) => {
     try {
-      await axios.post(`${import.meta.env.VITE_API_URL}/friends/accept/${id}`)
+      await axios.post(`/friends/accept/${id}`)
       fetchFriends()
       fetchRequests()
     } catch (err) {
@@ -62,7 +62,7 @@ function Friends({ onClose }) {
 
   const declineRequest = async (id) => {
     try {
-      await axios.delete(`${import.meta.env.VITE_API_URL}/friends/${id}`)
+      await axios.delete(`/friends/${id}`)
       fetchRequests()
     } catch (err) {
       console.error("Failed to decline request")
@@ -71,7 +71,7 @@ function Friends({ onClose }) {
 
   const removeFriend = async (id) => {
     try {
-      await axios.delete(`${import.meta.env.VITE_API_URL}/friends/${id}`)
+      await axios.delete(`/friends/${id}`)
       fetchFriends()
     } catch (err) {
       console.error("Failed to remove friend")

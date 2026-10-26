@@ -1,5 +1,5 @@
 import { useState } from "react"
-import axios from "axios"
+import axios from "../api"
 
 function ChapterSelect({ fileData, onGenerate, onExamMode, onKahoot }) {
   const [selectedChapter, setSelectedChapter] = useState(fileData.chapters[0])
@@ -18,7 +18,7 @@ function ChapterSelect({ fileData, onGenerate, onExamMode, onKahoot }) {
     setCurrentCards(null)
 
     try {
-      const res = await axios.post(`${import.meta.env.VITE_API_URL}/flashcards/generate`, {
+      const res = await axios.post(`/flashcards/generate`, {
         file_path: fileData.file_path,
         chapter: selectedChapter,
         num_cards: numCards
@@ -39,7 +39,7 @@ function ChapterSelect({ fileData, onGenerate, onExamMode, onKahoot }) {
     setSavedMessage(null)
 
     try {
-      await axios.post(`${import.meta.env.VITE_API_URL}/sets/save`, {
+      await axios.post(`/sets/save`, {
         title: setTitle || selectedChapter,
         chapter: selectedChapter,
         cards: currentCards

@@ -1,5 +1,5 @@
 import { useState } from "react"
-import axios from "axios"
+import axios from "../api"
 
 function Upload({ onUpload }) {
   const [loading, setLoading] = useState(false)
@@ -18,7 +18,7 @@ function Upload({ onUpload }) {
     formData.append("file", file)
 
     try {
-      const res = await axios.post(`${import.meta.env.VITE_API_URL}/upload/`, formData)
+      const res = await axios.post(`/upload/`, formData)
       onUpload(res.data)
     } catch (err) {
       setError("Failed to upload file. Make sure it's a PDF, DOCX, or EPUB.")
