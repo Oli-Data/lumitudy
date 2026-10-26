@@ -110,7 +110,7 @@ export default function App() {
       <div className="app-container">
 
         <header className="header">
-          <Brand />
+          <a href="/" aria-label="Back to my bookshelf" style={{textDecoration:"none"}}><Brand /></a>
           <div className="header-actions"><ThemeToggle />
 
           <div ref={dropdownRef} style={{ position: "relative" }}>

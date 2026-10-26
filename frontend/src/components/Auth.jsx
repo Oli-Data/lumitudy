@@ -64,7 +64,7 @@ function Auth({ embedded = false, onSuccess }) {
 
   return (
     <div className="auth-shell">
-      <header className="header"><Brand /><div className="header-actions"><span className="lab-signature">A CO³ LABS PROJECT</span><ThemeToggle /></div></header>
+      <header className="header"><a href="/" aria-label="Back to my bookshelf" style={{textDecoration:"none"}}><Brand /></a><div className="header-actions"><span className="lab-signature">A CO³ LABS PROJECT</span><ThemeToggle /></div></header>
       <main className="auth-layout">
         <section className="auth-story">
           <span className="eyebrow">LESS SCROLLING. MORE LIGHTBULB MOMENTS.</span>

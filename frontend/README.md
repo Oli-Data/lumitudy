@@ -26,18 +26,18 @@ The backend defaults to `claude-sonnet-5-5`. An existing Render `ANTHROPIC_MODEL
 
 Sonnet 5.5 requests explicitly use `thinking: {type: "between_tools"}` and high effort. With no tools in these generation requests, this keeps the existing token budget available for study material rather than up-front thinking. Other model overrides retain their previous request parameters. Flashcard source references, exact item counts, and exam answer choices still pass the existing validation. SDK request tests use a mock HTTP transport; they do not verify live account access, answer quality, latency, or cost.
 
-## Bookshelf prototype (local only)
+## Bookshelf homepage
 
-The separate bookshelf entry lives at `/observatory.html` and in `src/observatory/`; the normal production entry remains in place. Its sample lessons still use original prepared notes for three courses, six chapters, and eighteen questions. The new Log in / Sign up and Play together views connect to the existing authentication, upload, and multiplayer services. Google login is not implemented.
+The production homepage at `/` loads the bookshelf in `src/observatory/`. `/observatory.html` remains an alias for existing preview links. The existing upload, flashcard, practice exam, saved-set, and friends workspace is built at `/study.html`, linked as My textbooks from the bookshelf. Both entries share cookie authentication and the day/night theme. Its sample lessons still use original prepared notes for three courses, six chapters, and eighteen questions. The new Log in / Sign up and Play together views connect to the existing authentication, upload, and multiplayer services. Google login is not implemented.
 
-- `npm run prototype` starts the separate development configuration and opens the prototype.
+- `npm run prototype` starts the dedicated bookshelf development configuration.
 - `npm run prototype:build` writes only to `dist-observatory/`.
 - `npm run prototype:preview -- --host 127.0.0.1 --port 4178` serves that build; open `/observatory.html`.
 - `npm test` covers the new learning loop alongside the existing exam checks.
 
 The bookshelf presents illustrated course covers and a ribbon on the selected volume. Chapter tabs open a translucent study workspace with a reading preview and session planner. Liquid-glass covers, beveled shelf edges, watery light, and the shared Syne typography keep the Frutiger Aero identity. Mint green, sky blue, and honey distinguish the courses. The bookshelf navigation gives the app its own structure within the company identity. Day/night themes and narrow phone layouts are supported. The existing `/observatory.html` route and storage key are retained so saved progress carries forward.
 
-The prototype includes course/chapter selection, two suggested session lengths, readings, confidence-aware recall, optional source notes, mistake reflections, recap, review shelf, pause/resume, and progress reset. The five-minute option includes two questions; the ten-minute option includes three. These are estimated session sizes, not timers.
+The bookshelf includes course/chapter selection, two suggested session lengths, readings, confidence-aware recall, optional source notes, mistake reflections, recap, review shelf, pause/resume, and progress reset. The five-minute option includes two questions; the ten-minute option includes three. These are estimated session sizes, not timers.
 
 Progress is versioned under `lumitudy-observatory-v1` in local storage. It is browser-local, not account-synced. Malformed saved data falls back to a clean prototype state. Storage failures show a temporary-progress warning. Reset touches only prototype progress; account sessions and saved study sets are not accessed. A completed session updates the review shelf from each question's most recent answer and confidence. A correct, confident retry clears that question. Progress counts represent questions explored, not demonstrated mastery.
 
@@ -52,7 +52,7 @@ To target a different service explicitly, configure `VITE_API_URL` before starti
 Validation covers account registration/login, returning to multiplayer, joining without a book, host chapter selection, library failures, socket cleanup, and a real two-account backend quiz round with fixed generation output. It does not claim a live paid-model generation test.
 
 
-## Cookie sessions (local migration, not deployed)
+## Cookie sessions
 
 Both frontend entries use `src/api.js`, a dedicated credentialed API client. The login credential is an HttpOnly cookie; no bearer token is saved in localStorage or included in game URLs. Old local token keys are removed on startup. `/auth/session` restores identity and supplies an in-memory CSRF token; every modifying request attaches it. Login/signup rotate the session and CSRF token. Logout revokes the server session before clearing the UI; a network failure leaves an explicit retry message.
 
@@ -66,6 +66,6 @@ Do not publish only one half of this migration. Old clients use bearer tokens an
 2. On that service set `SESSION_COOKIE_SECURE=true` and `ALLOWED_ORIGINS=https://lumitudy.com,https://www.lumitudy.com`. The production cookie is `__Host-lumitudy_session`, with Secure, HttpOnly, SameSite=Lax, Path=/, and no Domain attribute. Never use the local insecure-cookie setting on Render.
 3. Set Vercel's `VITE_API_URL=https://api.lumitudy.com` and rebuild the intended entry. An unrelated `onrender.com` API and `vercel.app` frontend are cross-site and are deliberately not the production cookie setup. Test under the custom domains, including Safari.
 4. Preserve the existing `DATABASE_URL` and `UPLOAD_DIR`. Confirm that SQLite **and uploaded files** reside on an attached persistent disk, or use a managed database plus durable file storage. Render's ordinary filesystem is ephemeral. Do not point the service at a fresh empty path without migrating its existing data. `SECRET_KEY` is no longer used by this session implementation; provider API secrets remain backend-only.
-5. Coordinate backend and frontend rollout, then test register, login, refresh, logout/replay rejection, upload ownership, and a two-player game on the production domains. No deployment or DNS changes have been made by this local work.
+5. Coordinate backend and frontend rollout, then test register, login, refresh, logout/replay rejection, upload ownership, and a two-player game on the production domains. The cookie-session migration was deployed in commit `d35052d`; verify these settings when deploying to another environment.
 
 Session/CSRF regression checks: `../.venv/bin/python -m pytest ../backend/tests -q` and `npm test`. The cookie change reduces credential theft through scripts; it does not make XSS harmless. Login throttling, email verification, and password recovery remain separate hardening work.
