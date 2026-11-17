@@ -1,20 +1,23 @@
 {
-  "name": "frontend",
+  "name": "lumitudy-frontend",
   "private": true,
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "dev": "vite",
-    "build": "vite build",
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
     "lint": "eslint .",
-    "preview": "vite preview",
-    "test": "vitest run --environment jsdom",
-    "prototype": "vite --config vite.observatory.config.js --open /observatory.html",
-    "prototype:build": "vite build --config vite.observatory.config.js",
-    "prototype:preview": "vite preview --config vite.observatory.config.js"
+    "preview": "next start",
+    "test": "vitest run",
+    "check:preview": "node scripts/check-preview-privacy.mjs",
+    "prototype": "next dev",
+    "prototype:build": "next build",
+    "prototype:preview": "next start"
   },
   "dependencies": {
     "axios": "^1.16.1",
+    "next": "16.4.6",
     "react": "^19.2.6",
     "react-dom": "^19.2.6"
   },
@@ -27,10 +30,9 @@
     "@vitejs/plugin-react": "^6.0.1",
     "eslint": "^10.3.0",
     "eslint-plugin-react-hooks": "^7.1.1",
-    "eslint-plugin-react-refresh": "^0.5.2",
     "globals": "^17.6.0",
     "jsdom": "^29.1.1",
-    "vite": "^8.0.12",
     "vitest": "^5.0.0"
-  }
+  },
+  "engines": { "node": ">=22.12.0" }
 }

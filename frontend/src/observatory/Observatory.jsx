@@ -1,3 +1,6 @@
+'use client'
+
+import Link from 'next/link'
 import { useEffect, useRef, useState } from 'react'
 import { AeroBackdrop, Brand, ThemeToggle } from '../components/Brand'
 import { SparkIcon, StarIcon } from '../components/LumitudyIcons'
@@ -16,7 +19,8 @@ function CoverArt({kind}) {
 function Primary({children,...props}) { return <button className="obs-primary" {...props}>{children}</button> }
 
 export default function Observatory() {
-  const [progress,setProgress] = useState(() => { try { return readProgress(localStorage) } catch { return emptyProgress() } })
+  const [progress,setProgress] = useState(emptyProgress)
+  const [progressReady,setProgressReady] = useState(false)
   const auth = useAuth()
   const [returnScreen,setReturnScreen] = useState('home')
   function openAccount(destination='home') { setReturnScreen(destination); setScreen('account') }
@@ -32,9 +36,16 @@ export default function Observatory() {
   const answered = Object.keys(progress.answers).length
 
   useEffect(() => {
+    // The server and first browser render must agree. Restore saved progress
+    // after hydration, before enabling persistence, so it cannot be overwritten.
+    try { setProgress(readProgress(localStorage)) } catch { setStorageError(true) }
+    setProgressReady(true)
+  }, [])
+  useEffect(() => {
+    if (!progressReady) return
     try { localStorage.setItem(STORAGE_KEY,JSON.stringify(progress)); setStorageError(false) }
     catch { setStorageError(true) }
-  },[progress])
+  },[progress,progressReady])
   useEffect(() => { heading.current?.focus(); window.scrollTo?.({top:0,behavior:'instant'}) },[screen,session?.stage,session?.index])
 
   function chooseCourse(c) { setProgress(p => ({...p,courseId:c.id,chapterId:c.chapters[0].id})) }
@@ -58,7 +69,7 @@ export default function Observatory() {
   const sessionInProgress = session && session.stage!=='recap'
   return <><AeroBackdrop/><div className="observatory">
     <a className="obs-skip" href="#observatory-main">Skip to study space</a>
-    <header className="obs-header"><a className="obs-brand-link" href="/" aria-label="Lumitudy bookshelf home"><Brand/></a><nav aria-label="Study navigation"><a href="/study.html">My textbooks</a><button aria-current={screen==='home'?'page':undefined} onClick={()=>setScreen('home')}>My bookshelf</button><button aria-current={screen==='review'?'page':undefined} onClick={()=>setScreen('review')}>Revisit <span className="obs-count">{review.length}</span></button><button aria-current={screen==='play'?'page':undefined} onClick={()=>setScreen('play')} className="obs-play-nav">Play together</button></nav><div className="obs-header-tools"><button className="obs-account-button" onClick={()=>openAccount()}>{auth.loading?'Checking account…':auth.user?'My account':'Log in / Sign up'}</button><ThemeToggle/></div></header>
+    <header className="obs-header"><Link className="obs-brand-link" href="/" aria-label="Lumitudy bookshelf home"><Brand/></Link><nav aria-label="Study navigation"><Link href="/study">My textbooks</Link><button aria-current={screen==='home'?'page':undefined} onClick={()=>setScreen('home')}>My bookshelf</button><button aria-current={screen==='review'?'page':undefined} onClick={()=>setScreen('review')}>Revisit <span className="obs-count">{review.length}</span></button><button aria-current={screen==='play'?'page':undefined} onClick={()=>setScreen('play')} className="obs-play-nav">Play together</button></nav><div className="obs-header-tools"><button className="obs-account-button" onClick={()=>openAccount()}>{auth.loading?'Checking account…':auth.user?'My account':'Log in / Sign up'}</button><ThemeToggle/></div></header>
     <div className="obs-demo-line"><span><span className="obs-status-dot"/> Your own corner of the library</span><span>Sample courses · {storageError?'Progress is temporary':'Progress stays in this browser'}</span></div>
     {storageError&&<p className="obs-warning" role="alert">This browser could not save your progress. You can keep studying, but a reload may lose this session.</p>}
     <main id="observatory-main">
@@ -78,7 +89,7 @@ export default function Observatory() {
       {screen==='review'&&<section className="obs-review-page"><p className="obs-eyebrow">THE REVISIT SHELF</p><h1 ref={heading} tabIndex="-1">Let it click,<br/><em>one more time.</em></h1><p className="obs-page-deck">A wrong answer is a useful clue. So is a right answer you weren’t sure about.</p>{review.length?<><div className="obs-review-toolbar"><span>{review.length} questions to revisit</span><Primary disabled={!!sessionInProgress} onClick={startReview}>Practice this shelf <ArrowIcon/></Primary></div>{sessionInProgress&&<p className="obs-warning">You have a session in progress. <button className="obs-text-button" onClick={()=>setScreen('session')}>Continue it first</button></p>}<div className="obs-review-list">{review.map(r=>{const q=findQuestion(r.questionId);return <article className="obs-glass" key={q.id}><span className="obs-eyebrow">{chapterForQuestion(q.id).topic}</span><h2>{q.topic}</h2><p>{q.prompt}</p><span className="obs-review-reason">{r.selected!==q.answer?'Worth another look':'Correct, but you felt unsure'}</span></article>})}</div></>:<div className="obs-empty obs-glass"><span><SparkIcon/></span><h2>A little breathing room.</h2><p>Your review shelf is clear. Try a chapter and we’ll keep track of what could use another look.</p><Primary onClick={()=>setScreen('home')}>Explore your courses <ArrowIcon/></Primary></div>}</section>}
       {screen==='session'&&session&&<Session session={session} heading={heading} onPause={()=>setScreen('home')} onChange={updateSession} onSubmit={submit} onNext={()=>setProgress(advance)} onDone={()=>{setProgress(p=>({...p,session:null}));setScreen('home')}} onReview={()=>{setProgress(p=>({...p,session:null}));setScreen('review')}}/>}
     </main>
-    <footer className="obs-footer"><span><strong>A little curiosity goes a long way.</strong> Explore sample lessons here, or study your own textbooks.</span><div><a href="/study.html">Study your textbooks</a><button onClick={()=>setResetOpen('all')}>Reset sample progress</button></div></footer>
+    <footer className="obs-footer"><span><strong>A little curiosity goes a long way.</strong> Explore sample lessons here, or study your own textbooks.</span><div><Link href="/study">Study your textbooks</Link><button onClick={()=>setResetOpen('all')}>Reset sample progress</button></div></footer>
     {resetOpen&&<ResetDialog kind={resetOpen} onCancel={()=>setResetOpen(false)} onConfirm={()=>{setProgress(p=>resetOpen==='all'?emptyProgress():{...p,session:null});setScreen('home');setResetOpen(false)}}/>}
   </div></>
 }

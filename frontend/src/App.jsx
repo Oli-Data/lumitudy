@@ -1,3 +1,6 @@
+'use client'
+
+import Link from 'next/link'
 import { StarIcon, SparkIcon } from './components/LumitudyIcons'
 import { useState, useEffect, useRef } from "react"
 import axios from "./api"
@@ -110,7 +113,7 @@ export default function App() {
       <div className="app-container">
 
         <header className="header">
-          <a href="/" aria-label="Back to my bookshelf" style={{textDecoration:"none"}}><Brand /></a>
+          <Link href="/" aria-label="Back to my bookshelf" style={{textDecoration:"none"}}><Brand /></Link>
           <div className="header-actions"><ThemeToggle />
 
           <div ref={dropdownRef} style={{ position: "relative" }}>

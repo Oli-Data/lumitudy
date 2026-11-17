@@ -6,7 +6,7 @@ import Upload from '../components/Upload'
 import ArrowIcon from '../components/ArrowIcon'
 import { SparkIcon } from '../components/LumitudyIcons'
 
-const localAccountNotice = import.meta.env.VITE_PREVIEW_LOCAL_API === 'true'
+const localAccountNotice = process.env.NEXT_PUBLIC_LOCAL_API === 'true'
   ? 'Accounts in this local preview are separate from live Lumitudy.'
   : 'Use your existing Lumitudy account, or create one to play.'
 

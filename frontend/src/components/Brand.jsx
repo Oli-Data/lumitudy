@@ -1,22 +1,44 @@
+'use client'
+
 import { StarIcon, SparkIcon, SunIcon, MoonIcon } from './LumitudyIcons'
 import ArrowIcon from './ArrowIcon'
-import { useEffect, useState } from 'react'
+import LumitudyFlower from './LumitudyFlower'
+import { useSyncExternalStore } from 'react'
+
+function readTheme() { return document.documentElement.dataset.theme === 'night' ? 'night' : 'day' }
+function serverTheme() { return 'day' }
+function subscribeTheme(notify) {
+  const syncStorage = event => {
+    if (event.key === 'lumitudy-theme' || event.key === null) {
+      document.documentElement.dataset.theme = event.newValue === 'night' ? 'night' : 'day'
+      notify()
+    }
+  }
+  window.addEventListener('lumitudy:theme-change', notify)
+  window.addEventListener('storage', syncStorage)
+  return () => {
+    window.removeEventListener('lumitudy:theme-change', notify)
+    window.removeEventListener('storage', syncStorage)
+  }
+}
 
 export function AeroBackdrop() {
   return <div className="aero-scene" aria-hidden="true"><div className="aero-horizon" /><div className="aero-wave wave-one" /><div className="aero-wave wave-two" /><span className="aero-bubble bubble-one" /><span className="aero-bubble bubble-two" /><span className="aero-bubble bubble-three" /><span className="aero-bubble bubble-four" /><span className="aero-bubble bubble-five" /><div className="aero-glint glint-one"><SparkIcon /></div><div className="aero-glint glint-two"><SparkIcon /></div></div>
 }
 
 export function Brand() {
-  return <div className="brand"><span className="brand-mark" aria-hidden="true"><StarIcon /></span><span>Lumitudy<span className="brand-dot">.</span></span></div>
+  return <div className="brand"><LumitudyFlower /><span>Lumitudy<span className="brand-dot">.</span></span></div>
 }
 
 export function ThemeToggle() {
-  const [theme, setTheme] = useState(() => document.documentElement.dataset.theme || 'day')
-  useEffect(() => {
-    document.documentElement.dataset.theme = theme
-    try { localStorage.setItem('lumitudy-theme', theme) } catch { /* Appearance still works without storage. */ }
-  }, [theme])
-  return <button className="theme-toggle" onClick={() => setTheme(theme === 'day' ? 'night' : 'day')} aria-label={`Switch to ${theme === 'day' ? 'night' : 'day'} theme`}><span aria-hidden="true">{theme === 'day' ? <MoonIcon /> : <SunIcon />}</span><span>{theme === 'day' ? 'Night' : 'Day'}</span></button>
+  const theme = useSyncExternalStore(subscribeTheme, readTheme, serverTheme)
+  function toggleTheme() {
+    const next = theme === 'day' ? 'night' : 'day'
+    document.documentElement.dataset.theme = next
+    try { localStorage.setItem('lumitudy-theme', next) } catch { /* Appearance still works without storage. */ }
+    window.dispatchEvent(new Event('lumitudy:theme-change'))
+  }
+  return <button className="theme-toggle" onClick={toggleTheme} aria-label={`Switch to ${theme === 'day' ? 'night' : 'day'} theme`}><span aria-hidden="true">{theme === 'day' ? <MoonIcon /> : <SunIcon />}</span><span>{theme === 'day' ? 'Night' : 'Day'}</span></button>
 }
 
 export function StudyIllustration() {
