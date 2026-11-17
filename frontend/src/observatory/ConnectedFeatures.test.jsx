@@ -25,7 +25,7 @@ async function signedIn(user) {
 }
 beforeEach(()=>{
   localStorage.clear();vi.clearAllMocks();sockets=[]
-  vi.stubEnv('VITE_API_URL','/api')
+  vi.stubEnv('NEXT_PUBLIC_API_URL','/api')
   vi.stubGlobal('WebSocket',Socket);vi.stubGlobal('scrollTo',vi.fn())
   axios.get.mockResolvedValue({data:[]})
   getSession.mockResolvedValue({user:null,csrf_token:'anonymous-csrf'})

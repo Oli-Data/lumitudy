@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from "react"
 import axios from "../api"
 import { useAuth } from "../context/AuthContext"
+import { getGameSocketUrl } from '../config'
 
 function Kahoot({ fileData, onExit, intent = "both" }) {
   const { username } = useAuth()
@@ -42,11 +43,6 @@ function Kahoot({ fileData, onExit, intent = "both" }) {
   }, [])
 
   const connectWebSocket = (code, asHost) => {
-    const base = new URL(import.meta.env.VITE_API_URL || '/api', window.location.origin)
-    base.protocol = base.protocol === 'https:' ? 'wss:' : 'ws:'
-    base.pathname = `${base.pathname.replace(/\/$/, '')}/game/ws/${encodeURIComponent(code)}/${encodeURIComponent(username)}`
-    base.search = ''
-    base.hash = ''
     if (wsRef.current) {
       wsRef.current.onclose = null
       wsRef.current.onerror = null
@@ -55,7 +51,7 @@ function Kahoot({ fileData, onExit, intent = "both" }) {
       wsRef.current.close()
     }
     setLoading(true)
-    const ws = new WebSocket(base.href)
+    const ws = new WebSocket(getGameSocketUrl(code, username, window.location.origin))
     wsRef.current = ws
 
     ws.onopen = () => {

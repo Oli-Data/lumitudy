@@ -8,6 +8,12 @@ pnpm-debug.log*
 lerna-debug.log*
 
 node_modules
+.next/
+.vercel/
+out/
+coverage/
+.env*
+!.env.example
 dist
 dist-ssr
 *.local

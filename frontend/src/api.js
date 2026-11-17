@@ -1,7 +1,8 @@
 import axios from 'axios'
+import { getApiUrl } from './config'
 
 // Keep credentials and CSRF headers confined to the application's API client.
-const api = axios.create({ baseURL: import.meta.env.VITE_API_URL || '/api', withCredentials: true })
+const api = axios.create({ baseURL: getApiUrl(), withCredentials: true })
 let csrfToken = null
 let pendingSession = null
 
@@ -34,7 +35,7 @@ api.interceptors.request.use(async config => {
 api.interceptors.response.use(response => response, error => {
   if (error.response?.status === 401) {
     setSession(null)
-    if (error.config?.url !== '/auth/login') window.dispatchEvent(new Event('lumitudy:session-expired'))
+    if (typeof window !== 'undefined' && error.config?.url !== '/auth/login') window.dispatchEvent(new Event('lumitudy:session-expired'))
   }
   // Never retry mutations automatically: an upload or score may already have completed.
   return Promise.reject(error)

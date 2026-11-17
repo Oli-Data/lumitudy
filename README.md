@@ -19,7 +19,7 @@ Lumitudy allows students to upload PDF, DOCX, or EPUB textbooks and instantly ge
 - **Exam mode** — Answers are graded on the server, with immediate feedback and a per-chapter leaderboard of verified attempts
 - **Kahoot-style multiplayer mode** — Host a live game from any chapter or saved set; players join with a game code over WebSockets, answer against the clock, and climb a real-time leaderboard
 - **Friends** — Add friends with a personal friend code, send and accept requests, and manage your friends list
-- **User authentication** — JWT-based auth with email/password login and bcrypt-hashed passwords
+- **User authentication** — HttpOnly cookie sessions, CSRF protection, email/password login, and bcrypt-hashed passwords
 - **File library** — Uploaded textbooks are saved so users don't need to re-upload
 - **Saved sets** — Flashcard sets are saved to the database, reloadable anytime, and reusable as the question source for a Kahoot game
 - **Animated card transitions** — Cards swipe left/right with smooth CSS animations
@@ -35,11 +35,11 @@ Lumitudy allows students to upload PDF, DOCX, or EPUB textbooks and instantly ge
 - **python-docx** — DOCX parsing
 - **EbookLib + BeautifulSoup** — EPUB parsing
 - **Anthropic Claude API** — AI flashcard and exam generation
-- **bcrypt + python-jose** — Password hashing and JWT authentication
+- **bcrypt + server-managed sessions** — Password hashing, cookie authentication, and CSRF validation
 - **Deployed on Render**
 
 ### Frontend
-- **React + Vite** — Frontend framework
+- **Next.js 16 + React 19** — App Router, server-rendered route shells, and interactive client components
 - **Axios** — HTTP client
 - **Native WebSocket API** — Real-time connection for the multiplayer game
 - **CSS-in-JS** — Custom glass morphism design system
@@ -70,7 +70,10 @@ flashcard-app/
 └── frontend/
     └── src/
         ├── App.jsx               # Main app shell, view switching, card navigation
-        ├── main.jsx              # React entry point
+        ├── app/
+        │   ├── layout.jsx        # Shared metadata, appearance bootstrap, and auth provider
+        │   ├── page.jsx          # Bookshelf homepage at /
+        │   └── study/page.jsx    # Textbook workspace at /study
         ├── components/
         │   ├── Auth.jsx          # Login and signup UI
         │   ├── Upload.jsx        # File upload component
@@ -117,13 +120,19 @@ npm install
 
 Create a `.env.local` file in the `frontend` folder:
 ```
-VITE_API_URL=http://127.0.0.1:8000
+NEXT_PUBLIC_API_URL=/api
+LUMITUDY_API_TARGET=http://127.0.0.1:8000
+NEXT_PUBLIC_LOCAL_API=true
 ```
 
-Start the dev server:
+Start the Next.js dev server (Node 22.12+):
 ```bash
 npm run dev
 ```
+
+Open `http://localhost:3000`. The bookshelf is at `/`, and My textbooks is at `/study`. Old `/observatory.html` and `/study.html` bookmarks redirect automatically. For connected local accounts, use the isolated backend launcher documented in [frontend/README.md](frontend/README.md).
+
+For production, set `NEXT_PUBLIC_API_URL=https://api.lumitudy.com` and `NEXT_PUBLIC_LOCAL_API=false`. The existing `VITE_API_URL` setting is temporarily accepted at build time. Run `npm run build` and `npm start`; Vercel uses the Next.js configuration in `frontend/vercel.json`.
 
 ---
 
@@ -132,7 +141,7 @@ npm run dev
 | Method | Endpoint | Description |
 |--------|----------|-------------|
 | POST | `/auth/register` | Create a new account |
-| POST | `/auth/login` | Login and receive JWT token |
+| POST | `/auth/login` | Login and establish a cookie session |
 | POST | `/upload/` | Upload a textbook file |
 | GET | `/upload/files` | List user's uploaded files |
 | DELETE | `/upload/files/{id}` | Delete an uploaded file |

@@ -9,7 +9,7 @@ state = repo / 'frontend' / '.preview-data'
 state.mkdir(mode=0o700, exist_ok=True)
 # Explicit overrides prevent the preview from opening the deployed database.
 os.environ['SESSION_COOKIE_SECURE'] = 'false'
-os.environ['ALLOWED_ORIGINS'] = 'http://127.0.0.1:4178,http://localhost:4178,http://localhost:5173,http://127.0.0.1:5173'
+os.environ['ALLOWED_ORIGINS'] = 'http://127.0.0.1:3000,http://localhost:3000,http://127.0.0.1:4173,http://localhost:4173,http://127.0.0.1:4178,http://localhost:4178,http://localhost:5173,http://127.0.0.1:5173'
 os.environ['DATABASE_URL'] = f'sqlite:///{state / "lumitudy.db"}'
 os.environ['UPLOAD_DIR'] = str(state / 'uploads')
 sys.path.insert(0, str(backend))

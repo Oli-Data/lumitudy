@@ -29,3 +29,22 @@ jobs:
       - run: npm ci
       - run: npm test
       - run: npm run build
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+          cache: pip
+          cache-dependency-path: backend/requirements*.txt
+      - run: python -m pip install -r ../backend/requirements.txt
+      - name: Check production routes and API forwarding
+        run: |
+          python scripts/preview-api.py > /tmp/lumitudy-api.log 2>&1 &
+          api_pid=$!
+          npm start -- --hostname 127.0.0.1 --port 3000 > /tmp/lumitudy-next.log 2>&1 &
+          next_pid=$!
+          trap 'kill "$next_pid" "$api_pid"' EXIT
+          for attempt in $(seq 1 30); do
+            if curl --fail --silent http://127.0.0.1:3000/api/auth/session > /dev/null; then break; fi
+            sleep 1
+          done
+          npm run check:preview -- http://127.0.0.1:3000
+          python scripts/check-api-proxy.py http://127.0.0.1:3000
