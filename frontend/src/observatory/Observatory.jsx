@@ -2,7 +2,8 @@
 
 import Link from 'next/link'
 import { useEffect, useRef, useState } from 'react'
-import { AeroBackdrop, Brand, ThemeToggle } from '../components/Brand'
+import { AeroBackdrop } from '../components/Brand'
+import SiteHeader from '../components/SiteHeader'
 import { SparkIcon, StarIcon } from '../components/LumitudyIcons'
 import { useAuth } from '../context/AuthContext'
 import { AccountPanel, PlayTogether } from './ConnectedFeatures'
@@ -48,6 +49,23 @@ export default function Observatory() {
   },[progress,progressReady])
   useEffect(() => { heading.current?.focus(); window.scrollTo?.({top:0,behavior:'instant'}) },[screen,session?.stage,session?.index])
 
+  useEffect(() => {
+    function openLinkedScreen() {
+      if (window.location.hash === '#revisit') setScreen('review')
+      if (window.location.hash === '#play-together') setScreen('play')
+    }
+    openLinkedScreen()
+    window.addEventListener('hashchange', openLinkedScreen)
+    return () => window.removeEventListener('hashchange', openLinkedScreen)
+  }, [])
+
+  function navigateBookshelf(destination) {
+    if (['#revisit', '#play-together'].includes(window.location.hash)) {
+      window.history.replaceState(window.history.state, '', window.location.pathname + window.location.search)
+    }
+    setScreen(destination)
+  }
+
   function chooseCourse(c) { setProgress(p => ({...p,courseId:c.id,chapterId:c.chapters[0].id})) }
   function start(ch=chapter,mode='lesson',ids=null) {
     setProgress(p => ({...p,session:createSession(ch.id,ids ?? ch.questions.slice(0,minutes===5?2:3).map(q=>q.id),mode)}))
@@ -67,18 +85,23 @@ export default function Observatory() {
     })
   }
   const sessionInProgress = session && session.stage!=='recap'
-  return <><AeroBackdrop/><div className="observatory">
-    <a className="obs-skip" href="#observatory-main">Skip to study space</a>
-    <header className="obs-header"><Link className="obs-brand-link" href="/" aria-label="Lumitudy bookshelf home"><Brand/></Link><nav aria-label="Study navigation"><Link href="/study">My textbooks</Link><button aria-current={screen==='home'?'page':undefined} onClick={()=>setScreen('home')}>My bookshelf</button><button aria-current={screen==='review'?'page':undefined} onClick={()=>setScreen('review')}>Revisit <span className="obs-count">{review.length}</span></button><button aria-current={screen==='play'?'page':undefined} onClick={()=>setScreen('play')} className="obs-play-nav">Play together</button></nav><div className="obs-header-tools"><button className="obs-account-button" onClick={()=>openAccount()}>{auth.loading?'Checking account…':auth.user?'My account':'Log in / Sign up'}</button><ThemeToggle/></div></header>
+  return <><AeroBackdrop/><div className="observatory site-shell">
+    <SiteHeader current={screen} onBookshelfScreen={navigateBookshelf} reviewCount={review.length}
+      mainId="observatory-main" account={<button className="site-account-action" onClick={()=>openAccount()}>{auth.loading?'Checking account…':auth.user?'My account':'Log in / Sign up'}</button>} />
     <div className="obs-demo-line"><span><span className="obs-status-dot"/> Your own corner of the library</span><span>Sample courses · {storageError?'Progress is temporary':'Progress stays in this browser'}</span></div>
     {storageError&&<p className="obs-warning" role="alert">This browser could not save your progress. You can keep studying, but a reload may lose this session.</p>}
     <main id="observatory-main">
       {screen==='account'&&<AccountPanel auth={auth} heading={heading} onSuccess={()=>setScreen(returnScreen)} onHome={()=>setScreen('home')}/>}
       {screen==='play'&&<PlayTogether key={auth.user || 'guest'} auth={auth} heading={heading} onSignIn={()=>openAccount('play')}/>}
       {screen==='home'&&<>
-        <section className="obs-library-heading"><div><p className="obs-eyebrow">THE LUMITUDY LIBRARY</p><h1 ref={heading} tabIndex="-1">A little more curious.</h1><p>Pull up a book. Pick up where you left off.</p></div><span className="obs-library-stamp"><SparkIcon/><span>{progress.history.length} sessions<br/>and counting</span></span></section>
+        <section className="obs-library-heading"><div><p className="obs-eyebrow">THE LUMITUDY LIBRARY</p><h1 ref={heading} tabIndex="-1">A little more curious.</h1><p>Turn your textbook into flashcards, practice exams, and quizzes.</p>
+          <div className="obs-library-actions">
+            <Link className="obs-primary" href="/study?intent=upload" scroll={false}>Upload a textbook <ArrowIcon/></Link>
+            <a className="obs-text-button" href="#books-heading">Try a sample</a>
+          </div>
+        </div><span className="obs-library-stamp"><SparkIcon/><span>{progress.history.length} sessions<br/>and counting</span></span></section>
         {sessionInProgress&&<div className="obs-resume obs-glass"><div><span className="obs-eyebrow">YOUR BOOKMARK IS STILL HERE</span><h2>{findChapter(session.chapterId).title}</h2><p>{session.results.length} of {session.ids.length} questions checked. Your place is saved.</p></div><Primary onClick={()=>setScreen('session')}>Continue session <ArrowIcon/></Primary></div>}
-        <section className="obs-course-section" aria-labelledby="books-heading"><div className="obs-section-heading"><h2 id="books-heading">On your shelf</h2><span>03 sample volumes · Select a cover</span></div><div className="obs-bookshelf"><div className="obs-books">{courses.map((c,i)=>{
+        <section className="obs-course-section" aria-labelledby="books-heading"><div className="obs-section-heading"><h2 id="books-heading" tabIndex="-1">Sample bookshelf</h2><span>Select a cover</span></div><div className="obs-bookshelf"><div className="obs-books">{courses.map((c,i)=>{
           const count=c.chapters.flatMap(ch=>ch.questions).filter(q=>progress.answers[q.id]).length
           return <button key={c.id} className={`obs-book obs-${c.color} ${course.id===c.id?'is-selected':''}`} aria-label={`${c.subject} ${c.name}, ${count} of 6 questions explored`} aria-pressed={course.id===c.id} onClick={()=>chooseCourse(c)}><span className="obs-book-cover"><span className="obs-book-edition">LUMITUDY / VOL. 0{i+1}</span><span className="obs-book-title">{c.name}</span><CoverArt kind={c.symbol}/><span className="obs-book-subject">{c.subject}</span><span className="obs-book-ribbon" aria-hidden="true"><StarIcon/></span></span><span className="obs-book-caption"><strong>{course.id===c.id?'Open on your desk':'Open this book'}</strong><span>{count}/6 questions explored</span></span></button>
         })}</div><div className="obs-shelf-edge" aria-hidden="true"/></div></section>

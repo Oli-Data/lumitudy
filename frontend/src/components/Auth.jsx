@@ -1,12 +1,11 @@
-import Link from 'next/link'
 import ArrowIcon from './ArrowIcon'
 import { SparkIcon } from './LumitudyIcons'
 import { useState } from "react"
 import { useAuth } from "../context/AuthContext"
-import { Brand, ThemeToggle, StudyIllustration, LabFooter } from "./Brand"
+import { StudyIllustration, LabFooter } from "./Brand"
 
 
-function Auth({ embedded = false, onSuccess }) {
+function Auth({ embedded = false, onSuccess, uploadIntent = false, authError }) {
   const { login, register } = useAuth()
   const [isLogin, setIsLogin] = useState(true)
   const [email, setEmail] = useState("")
@@ -42,8 +41,8 @@ function Auth({ embedded = false, onSuccess }) {
         <section className={`auth-card ${embedded ? 'obs-glass' : ''}`} aria-labelledby="auth-heading">
           <span className="card-sticker" aria-hidden="true"><SparkIcon /></span>
           <span className="eyebrow">A LITTLE EVERY DAY</span>
-          <h2 id="auth-heading">{isLogin ? 'Welcome back, curious mind.' : 'Your next chapter starts here.'}</h2>
-          <p className="auth-tagline">{isLogin ? 'Pick up where your curiosity left off.' : 'Make room for a new way to learn.'}</p>
+          <h2 id="auth-heading" tabIndex={embedded ? undefined : -1}>{isLogin ? 'Welcome back, curious mind.' : 'Your next chapter starts here.'}</h2>
+          <p className="auth-tagline">{uploadIntent ? 'Log in or create an account to upload your textbook.' : isLogin ? 'Pick up where your curiosity left off.' : 'Make room for a new way to learn.'}</p>
           <div className="auth-tabs" aria-label="Account action">
             <button type="button" className={`auth-tab ${isLogin ? 'active' : 'inactive'}`} aria-pressed={isLogin} disabled={loading} onClick={() => { setIsLogin(true); setError(null) }}>Log in</button>
             <button type="button" className={`auth-tab ${!isLogin ? 'active' : 'inactive'}`} aria-pressed={!isLogin} disabled={loading} onClick={() => { setIsLogin(false); setError(null) }}>Sign up</button>
@@ -65,11 +64,11 @@ function Auth({ embedded = false, onSuccess }) {
 
   return (
     <div className="auth-shell">
-      <header className="header"><Link href="/" aria-label="Back to my bookshelf" style={{textDecoration:"none"}}><Brand /></Link><div className="header-actions"><span className="lab-signature">A CO³ LABS PROJECT</span><ThemeToggle /></div></header>
-      <main className="auth-layout">
+      {authError && <p role="alert">{authError}</p>}
+      <main className="auth-layout" id="study-workspace" tabIndex={-1}>
         <section className="auth-story">
           <span className="eyebrow">LESS SCROLLING. MORE LIGHTBULB MOMENTS.</span>
-          <h1>Meet your{" "}<br /><em>brighter side</em>{" "}<br />of studying.</h1>
+          <h1>My textbooks</h1>
           <p>Turn your textbooks into something you can play with. Flashcards, quizzes, and study sessions that start with your own material.</p>
           <StudyIllustration />
         </section>

@@ -1,7 +1,7 @@
 import { useState } from "react"
 import axios from "../api"
 
-function Upload({ onUpload }) {
+function Upload({ onUpload, sectionRef }) {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState(null)
   const [fileName, setFileName] = useState(null)
@@ -28,7 +28,7 @@ function Upload({ onUpload }) {
   }
 
   return (
-    <section className="upload-panel" aria-labelledby="upload-title">
+    <section ref={sectionRef} tabIndex={sectionRef ? -1 : undefined} className="upload-panel" aria-labelledby="upload-title">
       <div className="upload-icon" aria-hidden="true">↥</div>
       <div><h3 id="upload-title">Start with your textbook.</h3><p>A whole book or just a chapter. PDF, DOCX, and EPUB welcome.</p></div>
       <div className="upload-input"><input aria-label="Upload textbook" type="file" accept=".pdf,.docx,.epub" onChange={handleUpload} disabled={loading} /></div>

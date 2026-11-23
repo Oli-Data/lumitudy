@@ -1,6 +1,5 @@
 'use client'
 
-import Link from 'next/link'
 import { StarIcon, SparkIcon } from './components/LumitudyIcons'
 import { useState, useEffect, useRef } from "react"
 import axios from "./api"
@@ -8,11 +7,12 @@ import { useAuth } from "./context/AuthContext"
 import Upload from "./components/Upload"
 import ChapterSelect from "./components/ChapterSelect"
 import Auth from "./components/Auth"
+import SiteHeader from "./components/SiteHeader"
 import ExamMode from "./components/ExamMode"
 import FileLibrary from "./components/FileLibrary"
 import Friends from "./components/Friends"
 import Kahoot from "./components/Kahoot"
-import { Brand, ThemeToggle, StudyIllustration, LabFooter } from "./components/Brand"
+import { StudyIllustration, LabFooter } from "./components/Brand"
 
 
 function SourceQuote({ quote }) {
@@ -27,7 +27,7 @@ function SourceQuote({ quote }) {
   )
 }
 
-export default function App() {
+export default function App({ uploadIntent = false }) {
   const { user, username, friendCode, logout, loading, authError, loggingOut } = useAuth()
   const [fileData, setFileData] = useState(null)
   const [flashcards, setFlashcards] = useState([])
@@ -42,6 +42,14 @@ export default function App() {
   const [dropdownOpen, setDropdownOpen] = useState(false)
   const dropdownRef = useRef(null)
   const [kahootMode, setKahootMode] = useState(false)
+  const uploadSection = useRef(null)
+
+  useEffect(() => {
+    if (uploadIntent && !loading && user) {
+      uploadSection.current?.focus({ preventScroll: true })
+      uploadSection.current?.scrollIntoView({ block: "start" })
+    }
+  }, [uploadIntent, loading, user])
 
   useEffect(() => {
     if (user) fetchSavedSets()
@@ -105,17 +113,11 @@ export default function App() {
     }
   }
 
-  if (loading) return null
-  if (!user) return <>{authError && <p role="alert">{authError}</p>}<Auth /></>
-
-  return (
-    <>
-      <div className="app-container">
-
-        <header className="header">
-          <Link href="/" aria-label="Back to my bookshelf" style={{textDecoration:"none"}}><Brand /></Link>
-          <div className="header-actions"><ThemeToggle />
-
+  const account = loading
+    ? <button type="button" className="site-account-action" disabled>Checking account…</button>
+    : !user
+      ? <a className="site-account-action" href="#auth-heading">Log in / Sign up</a>
+      : (
           <div ref={dropdownRef} style={{ position: "relative" }}>
             <button
               className="profile-btn"
@@ -151,14 +153,19 @@ export default function App() {
               </div>
             )}
           </div>
-          </div>
-        </header>
+      )
 
-        <main id="study-workspace">
+  return (
+      <div className="site-shell study-shell">
+        <SiteHeader current="study" mainId="study-workspace" account={account} />
+        {loading ? <main id="study-workspace" tabIndex={-1}><p className="study-account-status" role="status">Checking your account…</p></main>
+          : !user ? <Auth uploadIntent={uploadIntent} authError={authError} />
+          : <>
+        <main id="study-workspace" tabIndex={-1}>
         {authError && <p role="alert">{authError}</p>}
         <section className="study-hero">
           <div><span className="eyebrow">YOUR PERSONAL STUDY SPACE</span>
-          <h1>A little focus.<br /><em>A lot of possibility.</em></h1>
+          <h1>My textbooks</h1>
           <p>Bring a chapter. Find your rhythm. Turn your reading into flashcards, quizzes, and a little friendly competition.</p>
           <div className="feature-pills"><span><SparkIcon /> Flashcards</span><span>◈ Practice exams</span><span><StarIcon /> Play together</span></div></div>
           <StudyIllustration />
@@ -189,9 +196,10 @@ export default function App() {
 
         {showFriends && <Friends onClose={() => setShowFriends(false)} />}
 
-        <Upload onUpload={setFileData} />
+        <Upload onUpload={setFileData} sectionRef={uploadIntent ? uploadSection : undefined} />
         <FileLibrary onFileSelect={setFileData} />
 
+        <div className="study-lesson">
         {fileData && examMode && (
           <ExamMode fileData={fileData} onExit={() => setExamMode(false)} />
         )}
@@ -256,9 +264,10 @@ export default function App() {
           </div>
         )}
 
+        </div>
         </main>
         <LabFooter />
+        </>}
       </div>
-    </>
   )
 }
