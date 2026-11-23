@@ -1,4 +1,3 @@
-import ArrowIcon from './ArrowIcon'
 import { SparkIcon } from './LumitudyIcons'
 import { useState } from "react"
 import { useAuth } from "../context/AuthContext"
@@ -53,7 +52,7 @@ function Auth({ embedded = false, onSuccess, uploadIntent = false, authError }) 
             {!isLogin && <><label htmlFor="auth-username">Username</label><input id="auth-username" className="auth-input" type="text" autoComplete="username" placeholder="What should we call you?" required value={username} onChange={(e) => setUsername(e.target.value)} /></>}
             <label htmlFor="auth-password">Password</label>
             <input id="auth-password" className="auth-input" type="password" autoComplete={isLogin ? 'current-password' : 'new-password'} placeholder="Your password" required value={password} onChange={(e) => setPassword(e.target.value)} />
-            <button className="auth-btn" type="submit" disabled={loading}>{loading ? 'One moment…' : isLogin ? 'Log in to Lumitudy' : 'Create your account'} <ArrowIcon /></button>
+            <button className="auth-btn" type="submit" disabled={loading}>{loading ? 'One moment…' : isLogin ? 'Log in to Lumitudy' : 'Create your account'}</button>
             {error && <p className="auth-error" role="alert">{error}</p>}
           </form>
           <div className="auth-note"><span aria-hidden="true">◈</span><p>Your material. Your starting point.<br /><span>Bring a PDF, DOCX, or EPUB.</span></p></div>

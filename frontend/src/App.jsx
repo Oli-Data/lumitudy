@@ -250,7 +250,7 @@ export default function App({ uploadIntent = false }) {
                 onClick={() => navigateCard("prev")}
                 disabled={currentCard === 0 || isAnimating}
               >
-                ← Prev
+                Prev
               </button>
               <span className="card-counter">{currentCard + 1} / {flashcards.length}</span>
               <button
@@ -258,7 +258,7 @@ export default function App({ uploadIntent = false }) {
                 onClick={() => navigateCard("next")}
                 disabled={currentCard === flashcards.length - 1 || isAnimating}
               >
-                Next →
+                Next
               </button>
             </div>
           </div>
