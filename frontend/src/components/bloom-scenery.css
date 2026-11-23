@@ -1,0 +1,67 @@
+.mode-bloom {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.mode-bloom-plant {
+  position: absolute;
+  display: block;
+  height: auto;
+  opacity: .68;
+}
+
+.mode-bloom-plant--far {
+  right: 20%;
+  bottom: 6.3%;
+  width: clamp(34px, 4.3vw, 65px);
+  opacity: .51;
+  --bloom-delay: 0ms;
+}
+
+.mode-bloom-plant--near {
+  right: 10.5%;
+  bottom: 1%;
+  width: clamp(45px, 6.2vw, 94px);
+  --bloom-delay: 230ms;
+}
+
+.mode-bloom-plant--ridge {
+  right: 3%;
+  bottom: 4.4%;
+  width: clamp(35px, 4.8vw, 73px);
+  opacity: .57;
+  --bloom-delay: 115ms;
+}
+
+.mode-bloom-ground { fill: var(--ink); opacity: .15; }
+.mode-bloom-petals { fill: #fff8e8; }
+.mode-bloom-center { fill: #edc35e; }
+
+:root[data-theme='night'] .mode-bloom { opacity: .74; }
+:root[data-theme='night'] .mode-bloom-ground { fill: #09283b; }
+
+@media (max-width: 650px) {
+  .mode-bloom-plant--far { right: 31%; bottom: 2%; }
+  .mode-bloom-plant--near { right: 16%; bottom: 1%; }
+  .mode-bloom-plant--ridge { right: 4%; bottom: 3.5%; }
+}
+
+@media (prefers-reduced-motion: no-preference) and (forced-colors: none) {
+  .mode-bloom-petals {
+    transform-box: fill-box;
+    transform-origin: center;
+    animation: mode-bloom-open .55s cubic-bezier(.22, 1, .36, 1) var(--bloom-delay) both;
+  }
+}
+
+@keyframes mode-bloom-open {
+  from { transform: rotate(-18deg) scale(.35); opacity: .25; }
+  to { transform: rotate(0) scale(1); opacity: 1; }
+}
+
+@media (forced-colors: active) {
+  .mode-bloom { display: none; }
+}

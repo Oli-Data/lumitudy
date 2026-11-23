@@ -8,6 +8,7 @@ import Upload from "./components/Upload"
 import ChapterSelect from "./components/ChapterSelect"
 import Auth from "./components/Auth"
 import SiteHeader from "./components/SiteHeader"
+import BloomScenery from "./components/BloomScenery"
 import ExamMode from "./components/ExamMode"
 import FileLibrary from "./components/FileLibrary"
 import Friends from "./components/Friends"
@@ -161,6 +162,7 @@ export default function App({ uploadIntent = false }) {
         {loading ? <main id="study-workspace" tabIndex={-1}><p className="study-account-status" role="status">Checking your account…</p></main>
           : !user ? <Auth uploadIntent={uploadIntent} authError={authError} />
           : <>
+        {!kahootMode && <BloomScenery />}
         <main id="study-workspace" tabIndex={-1}>
         {authError && <p role="alert">{authError}</p>}
         <section className="study-hero">
@@ -170,7 +172,7 @@ export default function App({ uploadIntent = false }) {
           <div className="feature-pills"><span><SparkIcon /> Flashcards</span><span>◈ Practice exams</span><span><StarIcon /> Play together</span></div></div>
           <StudyIllustration />
         </section>
-        <div className="workspace-heading"><h2>Let’s get into it.</h2><span>One chapter at a time</span></div>
+        <div className="workspace-heading"><h2>Bloom</h2><span>Solo study, one chapter at a time</span></div>
 
         {showSaved && (
           <div className="glass-panel">
